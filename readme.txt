@@ -1,14 +1,15 @@
-oled_periph
-=====================
-This project contains a an example monitoring the light sensor,
-temperature sensor, accelerometer and trim potentiometer and
-displaying the values on the OLED display.
+Licznik
 
-The project makes use of code from the following library projects:
-- CMSISv1p30_LPC17xx : for CMSIS 1.30 files relevant to LPC17xx
-- MCU_Lib        	 : for LPC17xx peripheral driver files
-- EaBaseBoard_Lib    : for Embedded Artists LPCXpresso Base Board peripheral drivers
+Program zliczający osoby wchodzące i wychodzące z pokoju
 
-These library projects must exist in the same workspace in order
-for the project to successfully build.
+Konstrukcja maina:
+-INCLUDY
+-DEFINE
+-ZMIENNE GLOBALNE
+-FUNKCJE
+-MAIN
 
+Funkcjonalności:
+
+
+Grupa:
