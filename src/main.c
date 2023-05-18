@@ -24,6 +24,10 @@
 
 //	SPEAKER
 #include "lpc17xx_dac.h"
+
+// UART
+#include "uart2.h"
+
 //	REAL TIME CLOCK
 #include "lpc17xx_rtc.h"
 
@@ -36,6 +40,7 @@
 //	MMC
 #include "../inc/diskio.h"
 #include "../inc/ff.h"
+
 
 //	OLED
 #include "oled.h"
@@ -50,6 +55,7 @@
 #define NOTE_PIN_HIGH() GPIO_SetValue(0, 1<<26);
 #define NOTE_PIN_LOW()  GPIO_ClearValue(0, 1<<26);
 #define UART_DEV LPC_UART3
+
 
 
 //############################//
@@ -75,11 +81,6 @@ static uint32_t notes[] = {
         1432, // f - 698 Hz
         1275, // g - 784 Hz
 };
-
-
-extern const unsigned char melody[];
-extern int sound_size;
-
 
 static uint32_t msTicks = 0;
 static uint8_t buf[100];
@@ -108,93 +109,6 @@ FRESULT res;
 //        INIT SPEAKER        //
 //############################//
 
-static int speakerInit(int* cnt, int* sampleRate, int* delay, int* off) {
-     PINSEL_CFG_Type PinCfg;
-
-     GPIO_SetDir(2, 1 << 0, 1);
-     GPIO_SetDir(2, 1 << 1, 1);
-
-     GPIO_SetDir(0, 1 << 27, 1);
-     GPIO_SetDir(0, 1 << 28, 1);
-     GPIO_SetDir(2, 1 << 13, 1);
-
-     GPIO_ClearValue(0, 1 << 27); //LM4811-clk
-     GPIO_ClearValue(0, 1 << 28); //LM4811-up/dn
-     GPIO_ClearValue(2, 1 << 13); //LM4811-shutdn
-
-     /*
-      * Init DAC pin connect
-      * AOUT on P0.26
-      */
-//     PinCfg.Funcnum = 2;
-//     PinCfg.OpenDrain = 0;
-//     PinCfg.Pinmode = 0;
-//     PinCfg.Pinnum = 26;
-//     PinCfg.Portnum = 0;
-//     PINSEL_ConfigPin(&PinCfg);
-
-    /* init DAC structure to default
-     * Maximum	current is 700 uA
-     * First value to AOUT is 0
-     */
-      DAC_Init(LPC_DAC);
-
-    /* ChunkID */
-    if (melody[*cnt] != 'R' && melody[*cnt + 1] != 'I' && melody[*cnt + 2] != 'F'
-        && melody[*cnt + 3] != 'F') {
-        return -1;
-    }
-    *cnt += 4;
-
-    /* skip chunk size*/
-    *cnt += 4;
-
-    /* Format */
-    if (melody[*cnt] != 'W' && melody[*cnt + 1] != 'A' && melody[*cnt + 2] != 'V'
-        && melody[*cnt + 3] != 'E') {
-        return -1;
-    }
-    *cnt += 4;
-
-    /* SubChunk1ID */
-    if (melody[*cnt] != 'f' && melody[*cnt + 1] != 'm' && melody[*cnt + 2] != 't'
-        && melody[*cnt + 3] != ' ') {
-        return -1;
-    }
-    *cnt += 4;
-
-    /* skip chunk size, audio format, num channels */
-    *cnt += 8;
-
-    *sampleRate = (melody[*cnt] | (melody[*cnt + 1] << 8) | (melody[*cnt + 2] << 16)
-                  | (melody[*cnt + 3] << 24));
-
-    if (*sampleRate != 8000) {
-        return -1;
-    }
-
-    //TODO HERE
-    *delay = 64;
-
-    *cnt += 4;
-
-    /* skip byte rate, align, bits per sample */
-    *cnt += 8;
-
-    /* SubChunk2ID */
-    if (melody[*cnt] != 'd' && melody[*cnt + 1] != 'a' && melody[*cnt + 2] != 't'
-        && melody[*cnt + 3] != 'a') {
-        return -1;
-    }
-    *cnt += 4;
-
-    /* skip chunk size */
-    *cnt += 4;
-
-    *off = *cnt;
-
-    return 0;
-}
 
 //############################//
 //         INIT UART          //
@@ -326,18 +240,19 @@ static void init_adc(void)
 
 static int init_mmc(void)
 {
+
 	res = f_mount(0, &Fatfs[0]);
 	if (res != FR_OK) {
 		int i;
 		i = sprintf((char*)buf_mmc, "Failed to mount 0: %d \r\n", res);
-		oled_putString(1,1, buf_mmc, OLED_COLOR_BLACK, OLED_COLOR_WHITE);
+		oled_putString(1,40, buf_mmc, OLED_COLOR_BLACK, OLED_COLOR_WHITE);
 		return 1;
 	}
 
 	res = f_opendir(&dir, "/");
 	if (res != FR_OK) {
 		sprintf((char*)buf_mmc, "Failed to open /: %d \r\n", res);
-		oled_putString(1,1, buf_mmc, OLED_COLOR_BLACK, OLED_COLOR_WHITE);
+		oled_putString(1,40, buf_mmc, OLED_COLOR_BLACK, OLED_COLOR_WHITE);
 		return 1;
 	}
 }
@@ -351,15 +266,6 @@ static int init_mmc(void)
 //############################//
 //        PLAY MELODY         //
 //############################//
-
-void playMelody(int* cnt, int* off, int* delay) {
-    *cnt = *off;
-    int a = *cnt;
-    while (a++ < sound_size) {
-    	DAC_UpdateValue ( LPC_DAC,(uint32_t)(melody[a]*4));
-    	Timer0_us_Wait(*delay);
-    }
-}
 
 //############################//
 //         PLAY NOTE          //
@@ -389,6 +295,73 @@ static void playNote(uint32_t note, uint32_t durationMs) {
         //delay32Ms(0, durationMs);
     }
 }
+
+static uint32_t getNote(uint8_t ch)
+{
+    if (ch >= 'A' && ch <= 'G')
+        return notes[ch - 'A'];
+
+    if (ch >= 'a' && ch <= 'g')
+        return notes[ch - 'a' + 7];
+
+    return 0;
+}
+
+static uint32_t getDuration(uint8_t ch)
+{
+    if (ch < '0' || ch > '9')
+        return 400;
+
+    /* number of ms */
+
+    return (ch - '0') * 200;
+}
+
+static uint32_t getPause(uint8_t ch)
+{
+    switch (ch) {
+        case '+':
+            return 0;
+        case ',':
+            return 5;
+        case '.':
+            return 20;
+        case '_':
+            return 30;
+        default:
+            return 5;
+    }
+}
+
+static void playSong(uint8_t *song) {
+    uint32_t note = 0;
+    uint32_t dur  = 0;
+    uint32_t pause = 0;
+
+    /*
+     * A song is a collection of tones where each tone is
+     * a note, duration and pause, e.g.
+     *
+     * "E2,F4,"
+     */
+
+    while(*song != '\0') {
+        note = getNote(*song++);
+        if (*song == '\0')
+            break;
+        dur  = getDuration(*song++);
+        if (*song == '\0')
+            break;
+        pause = getPause(*song++);
+
+        playNote(note, dur);
+        //delay32Ms(0, pause);
+        Timer0_Wait(pause);
+    }
+}
+
+static uint8_t * song = (uint8_t*)"A1_";
+
 
 
 //############################//
@@ -435,7 +408,7 @@ void makeLEDsColor(uint32_t time) {
 
 	            if (count >= 7){
 	                count = 0;
-	                Timer0_Wait(3000);
+
 	                pca9532_setLeds(0, 0xffff);
 	                break;
 	            }
@@ -457,7 +430,7 @@ void makeLEDsColor(uint32_t time) {
 
 	            if (count >= 16 ){
 	                count = 7;
-	                Timer0_Wait(3000);
+
 	                pca9532_setLeds(0, 0xffff);
 	                break;
 	            }
@@ -467,7 +440,7 @@ void makeLEDsColor(uint32_t time) {
 	            Timer0_Wait(delay);
 	    }
 	    }
-	    pca9532_setLeds(0,0xffff);
+
 }
 
 //############################//
@@ -597,9 +570,12 @@ int main (void)
 	uint8_t sw4 = 0;
 	uint8_t sw3_pressed=0;
 	uint8_t stop_timer=0;
-	uint8_t saved_hour = 0;
-	uint8_t saved_minute = 0;
-	uint8_t saved_second = 0;
+	uint8_t hour = 15;
+	uint8_t minute = 3;
+	uint8_t second = 47;
+	uint8_t day = 21;
+	uint8_t month = 5;
+	uint16_t year = 2023;
 
 	uint32_t s;
 	uint32_t ms;
@@ -623,14 +599,14 @@ int main (void)
 	init_ssp();
 	init_adc();
 	if(init_mmc() == 1) return 1;
+	
+
+
 
     oled_init();
     init_uart();
 
-	speakerInit(ptrCnt, ptrSampleRate, ptrDelay, ptrTurnOff);
-	playNote(1272, 400);
-	playNote(2272, 200);
-	playNote(1272, 400);
+
 
 //############################//
 //      REAL TIME CLOCK       //
@@ -667,14 +643,17 @@ int main (void)
 //############################//
 //            MMC             //
 //############################//
-
-	if(f_open(&fp, "logs.txt", FA_WRITE) == FR_OK) {
-		snprintf(buf_mmc, sizeof(buf_mmc), "%02d:%02d:%02d %02d.%02d.%02dr.", godziny, minuty, sekundy, dzien, miesiac, rok);
+   FRESULT a =f_open(&fp, "log.txt", FA_OPEN_ALWAYS|FA_WRITE);
+	if(a == FR_OK) {
+		snprintf(buf_mmc, sizeof(buf_mmc), "%02d:%02d:%02d %02d.%02d.%04dr.", hour, minute, second, day, month, year);
 		if(f_write(&fp, buf_mmc, sizeof(buf_mmc), &bw) == FR_OK) {
 			oled_putString(27,41, "Zapisano.", OLED_COLOR_BLACK, OLED_COLOR_WHITE);
 		} else {
 			oled_putString(1,41, "Zapis nieudany.", OLED_COLOR_BLACK, OLED_COLOR_WHITE);
 		}
+	}
+	else {
+		oled_putString(1,41, "Nic nie udane.", OLED_COLOR_BLACK, OLED_COLOR_WHITE);
 	}
 	f_close(&fp);
 
@@ -689,6 +668,7 @@ int main (void)
 		//############################//
 
 		sw3 = ((GPIO_ReadValue(0) >> 4 ) & 0x01);
+		sw4 = ((GPIO_ReadValue(1) >> 31) & 0x01);
 
 		if (sw3 != 0) {
 			sw3_pressed = 0;
@@ -724,10 +704,7 @@ int main (void)
 				//############################//
 				//        PLAY MELODY         //
 				//############################//
-				*ptrCnt = 0;
-				playMelody(ptrCnt, ptrTurnOff, ptrDelay);
-				
-				playNote(2272, 400);
+				playSong(song);
 			}
 		}
 
