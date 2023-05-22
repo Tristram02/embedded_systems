@@ -41,6 +41,8 @@
 #include "../inc/diskio.h"
 #include "../inc/ff.h"
 
+//EEPROM
+#include "../inc/eeprom.h"
 
 //	OLED
 #include "oled.h"
@@ -55,7 +57,23 @@
 #define NOTE_PIN_HIGH() GPIO_SetValue(0, 1<<26);
 #define NOTE_PIN_LOW()  GPIO_ClearValue(0, 1<<26);
 #define UART_DEV LPC_UART3
+#define EEPROMLen 20
 
+
+//############################//
+//            UART            //
+//############################//
+
+#define RDR			(1<<0)
+#define THRE		(1<<5)
+#define	MULVAL		15
+#define DIVADDVAL	2
+#define Ux_FIFO_EN	(1<<0)
+#define Rx_FIFO_RST	(1<<1)
+#define Tx_FIFO_RST (1<<2)
+#define DLAB_BIT	(1<<7)
+#define LINE_FEED	0x0A
+#define ENTER	0x0D
 
 
 //############################//
@@ -82,8 +100,10 @@ static uint32_t notes[] = {
         1275, // g - 784 Hz
 };
 
+
 static uint32_t msTicks = 0;
-static uint8_t buf[100];
+static uint8_t buf[100]; //	Bufor do przechowania czasu wejscia
+static uint8_t pBuf[EEPROMLen]; //	Bufor do przechowania liczby ludzi
 
 LPC_RTC_TypeDef *RTCx = (LPC_RTC_TypeDef *) LPC_RTC_BASE;
 
@@ -91,8 +111,11 @@ static FATFS Fatfs[1];
 static uint8_t buf_mmc[22]; //21 znaki alarmu + 1 znak LF
 FIL *fp;
 UINT bw = 0;
+UINT br = 0;
 DIR dir;
 FRESULT res;
+
+
 
 //############################//
 //                            //
@@ -136,6 +159,27 @@ static void init_uart(void)
 
 	UART_TxCmd(UART_DEV, ENABLE);
 
+}
+
+void initUART0(void)
+{
+	LPC_PINCON->PINSEL0 |= (1<<4) | (1<<6);
+
+	LPC_UART0->LCR = 3 | DLAB_BIT ; /* 8 bits, no Parity, 1 Stop bit & DLAB set to 1  */
+	LPC_UART0->DLL = 12;
+	LPC_UART0->DLM = 0;
+
+	//LPC_UART0->IER |= ..; //Edit this if want you to use UART interrupts
+	LPC_UART0->FCR |= Ux_FIFO_EN | Rx_FIFO_RST | Tx_FIFO_RST;
+	LPC_UART0->FDR = (MULVAL<<4) | DIVADDVAL; /* MULVAL=15(bits - 7:4) , DIVADDVAL=2(bits - 3:0)  */
+	LPC_UART0->LCR &= ~(DLAB_BIT);
+}
+
+void U0Write(char txData)
+{
+	while(!(LPC_UART0->LSR & THRE)); //wait until THR is empty
+	//now we can write to Tx FIFO
+	LPC_UART0->THR = txData;
 }
 
 //############################//
@@ -241,7 +285,7 @@ static void init_adc(void)
 static int init_mmc(void)
 {
 
-	res = f_mount(0, &Fatfs[0]);
+	res = f_mount(&Fatfs[0],"", 0);
 	if (res != FR_OK) {
 		int i;
 		i = sprintf((char*)buf_mmc, "Failed to mount 0: %d \r\n", res);
@@ -255,6 +299,22 @@ static int init_mmc(void)
 		oled_putString(1,40, buf_mmc, OLED_COLOR_BLACK, OLED_COLOR_WHITE);
 		return 1;
 	}
+}
+
+void save_log(uint8_t log[], uint8_t filename[])
+{
+	FRESULT a = f_open(&fp, filename, FA_OPEN_APPEND | FA_WRITE);
+		if(a == FR_OK) {
+			if(f_write(&fp, log, sizeof(log), &bw) == FR_OK) {
+
+			} else {
+				oled_putString(1,41, "Zapis nieudany.", OLED_COLOR_BLACK, OLED_COLOR_WHITE);
+			}
+		}
+		else {
+			oled_putString(1,41, "Blad SD", OLED_COLOR_BLACK, OLED_COLOR_WHITE);
+		}
+		f_close(&fp);
 }
 
 //############################//
@@ -536,6 +596,19 @@ static void intToString(int value, uint8_t* pBuf, uint32_t len, uint32_t base)
 
 }
 
+int arrayToInt(uint8_t arr[])
+{
+	uint8_t number = 0;
+	for (int i = 0; i < EEPROMLen; i++)
+	{
+		if (arr[i] == '\0')
+			break;
+		if (arr[i] >= '0' && arr[i] <= '9')
+			number = number * 10 + (arr[i] - '0');
+	}
+	return number;
+}
+
 //############################//
 //                            //
 //           TIMER            //
@@ -569,6 +642,7 @@ int main (void)
 	uint8_t sw3 = 0;
 	uint8_t sw4 = 0;
 	uint8_t sw3_pressed=0;
+	uint8_t sw4_pressed=0;
 	uint8_t stop_timer=0;
 	uint8_t hour = 15;
 	uint8_t minute = 3;
@@ -590,6 +664,13 @@ int main (void)
 	uint32_t* ptrDelay = &delay;
 	uint32_t* ptrTurnOff = &turnOff;
 
+	uint8_t liczbaOsob = 0;
+	uint16_t offset = 240;
+	uint8_t len = 0;
+
+	char uartMsg[] = "Hi robert!";
+	int count = 0;
+
 
 //############################//
 //           INITS            //
@@ -599,7 +680,7 @@ int main (void)
 	init_ssp();
 	init_adc();
 	if(init_mmc() == 1) return 1;
-	
+	eeprom_init();
 
 
 
@@ -639,23 +720,47 @@ int main (void)
     oled_clearScreen(OLED_COLOR_WHITE);
 
     oled_putString(1,9,  (uint8_t*)"Timer:", OLED_COLOR_BLACK, OLED_COLOR_WHITE);
+    oled_putString(1,20,  (uint8_t*)"IleOsob:", OLED_COLOR_BLACK, OLED_COLOR_WHITE);
 
 //############################//
 //            MMC             //
 //############################//
-   FRESULT a =f_open(&fp, "log.txt", FA_OPEN_ALWAYS|FA_WRITE);
+    snprintf(buf_mmc, sizeof(buf_mmc), "%02d:%02d:%02d %02d.%02d.%04dr.", hour, minute, second, day, month, year);
+    save_log(buf_mmc, "log.txt");
+
+
+
+
+//############################//
+//           EEPROM           //
+//############################//
+
+len = eeprom_read(pBuf, offset, EEPROMLen);
+
+if (len == EEPROMLen)
+{
+	save_log("Blad EEPROM\n","log.txt");
+
+	FRESULT a =f_open(&fp, "ludzie.txt", FA_READ);
 	if(a == FR_OK) {
-		snprintf(buf_mmc, sizeof(buf_mmc), "%02d:%02d:%02d %02d.%02d.%04dr.", hour, minute, second, day, month, year);
-		if(f_write(&fp, buf_mmc, sizeof(buf_mmc), &bw) == FR_OK) {
-			oled_putString(27,41, "Zapisano.", OLED_COLOR_BLACK, OLED_COLOR_WHITE);
+		if(f_read(&fp, pBuf, EEPROMLen, &br) == FR_OK) {
+			save_log("Odczyt z SD liczby ludzi\n","log.txt");
+			liczbaOsob = arrayToInt(pBuf) - 1;
 		} else {
-			oled_putString(1,41, "Zapis nieudany.", OLED_COLOR_BLACK, OLED_COLOR_WHITE);
+			save_log("Blad odczytu z SD liczby ludzi\n","log.txt");
 		}
 	}
 	else {
-		oled_putString(1,41, "Nic nie udane.", OLED_COLOR_BLACK, OLED_COLOR_WHITE);
+		oled_putString(1,41, "Blad SD", OLED_COLOR_BLACK, OLED_COLOR_WHITE);
 	}
 	f_close(&fp);
+
+}
+else
+{
+	liczbaOsob = arrayToInt(pBuf) - 1;
+	save_log("Odczyt z EEPROM liczby ludzi\n","log.txt");
+}
 
 
 //############################//
@@ -663,12 +768,34 @@ int main (void)
 //############################//
     while(1) {
 
+    	while( uartMsg[count]!='\0' )
+		{
+			U0Write(uartMsg[count]);
+			count++;
+		}
+		//Send NEW Line Character(s) i.e. "\n"
+		U0Write(LINE_FEED); //Windows uses CR+LF for newline.
+		count=0; // reset counter
+
 		//############################//
 		//        BUTTON VALUE        //
 		//############################//
 
 		sw3 = ((GPIO_ReadValue(0) >> 4 ) & 0x01);
-		sw4 = ((GPIO_ReadValue(1) >> 31) & 0x01);
+		sw4 = ((GPIO_ReadValue(1) >> 4) & 0x01);
+
+		if (sw4 != 0)
+		{
+			sw4_pressed = 0;
+		}
+
+		if (sw4 == 0 && sw4_pressed == 0)
+		{
+			sw4_pressed = 1;
+			liczbaOsob += 1;
+			snprintf(pBuf, 9, "%2d", liczbaOsob);
+			oled_putString(70,20, pBuf, OLED_COLOR_BLACK, OLED_COLOR_WHITE);
+		}
 
 		if (sw3 != 0) {
 			sw3_pressed = 0;
@@ -701,11 +828,22 @@ int main (void)
 				snprintf(buf, 9, "%2d.%3d", s, ms);//	CONVERT MEASURED TIME
 				oled_putString(40,9, buf, OLED_COLOR_BLACK, OLED_COLOR_WHITE);//	PRINT TIME ON OLED
 
+				liczbaOsob += 1;
+				snprintf(pBuf, 9, "%2d", liczbaOsob);
+				oled_putString(70,20, pBuf, OLED_COLOR_BLACK, OLED_COLOR_WHITE);
+
 				//############################//
 				//        PLAY MELODY         //
 				//############################//
 				playSong(song);
 			}
+		}
+
+
+		len = eeprom_write(pBuf, offset, EEPROMLen);
+		if (len != EEPROMLen)
+		{
+			save_log("Blad zapisu do EEPROM\n","log.txt");
 		}
 
     }

@@ -1,0 +1,6 @@
+12:23:25 **** Incremental Build of configuration Debug for project i2c_eeprom ****
+make -r -j16 all 
+make: Nothing to be done for 'all'.
+
+12:23:25 Build Finished. 0 errors, 0 warnings. (took 106ms)
+
