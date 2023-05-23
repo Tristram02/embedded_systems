@@ -115,6 +115,38 @@ UINT br = 0;
 DIR dir;
 FRESULT res;
 
+
+
+//############################//
+//                            //
+//     DEKLARACJA FUNKCJI	  //
+//                            //
+//############################//
+static void init_uart(void);
+void initUART0(void);
+void U0Write(char txData);
+char U0Read(void);
+uint16_t GetTimeFromUART();
+void writeUARTMsg(char msg[]);
+static void init_ssp(void);
+static void init_i2c(void);
+static void init_adc(void);
+static int init_mmc(void);
+void save_log(const uint8_t log[], const uint8_t filename[]);
+static void playNote(uint32_t note, uint32_t durationMs);
+static uint32_t getNote(uint8_t ch);
+static uint32_t getDuration(uint8_t ch);
+static uint32_t getPause(uint8_t ch);
+static void playSong(uint8_t *song);
+void makeLEDsColor(uint32_t time);
+static void colorRgbDiode(uint32_t time);
+void display_time();
+static void intToString(int value, uint8_t* pBuf, uint32_t len, uint32_t base);
+int arrayToInt(uint8_t arr[]);
+void SysTick_Handler(void);
+static uint32_t getTicks(void);
+int main(void);
+
 /*!
  *  @brief    inicjalizacja UART
  *
@@ -438,8 +470,8 @@ void save_log(const uint8_t log[], const uint8_t filename[])
  *             czas przez jaki nuta ma byc odgrywana w mikrosekundach
  */
 
-static void playNote(uint32_t note, uint32_t durationMs) {
-
+static void playNote(uint32_t note, uint32_t durationMs) 
+{
     uint32_t t = 0;
 
     if ((int)note > 0) {
@@ -520,7 +552,8 @@ static uint32_t getPause(uint8_t ch)
     }
 }
 
-static void playSong(uint8_t *song) {
+static void playSong(uint8_t *song)
+{
     uint32_t note = 0;
     uint32_t dur  = 0;
     uint32_t pause = 0;
@@ -564,7 +597,8 @@ static uint8_t * buzzer_sound = (uint8_t*)"A1_";
 //         LEDS COLOR         //
 //############################//
 
-void makeLEDsColor(uint32_t time) {
+void makeLEDsColor(uint32_t time) 
+{
 	uint16_t ledOn = 0;
 	    uint32_t count = 0;
 	    uint32_t delay = 40;
@@ -637,8 +671,8 @@ void makeLEDsColor(uint32_t time) {
 //           DIODA            //
 //############################//
 
-static void colorRgbDiode(uint32_t time){
-
+static void colorRgbDiode(uint32_t time)
+{
     rgb_init();
 
     if ((int)time > 3)
@@ -659,7 +693,8 @@ static void colorRgbDiode(uint32_t time){
 //                            //
 //############################//
 
-void display_time() {
+void display_time() 
+{
     uint32_t hour;
 	uint32_t minute;
 	uint32_t second;
@@ -747,7 +782,8 @@ int arrayToInt(uint8_t arr[])
 //                            //
 //############################//
 
-void SysTick_Handler(void) {
+void SysTick_Handler(void) 
+{
     msTicks++;
 }
 
