@@ -377,14 +377,14 @@ static int init_mmc(void)
 	res = f_mount(&Fatfs[0],"", 0);
 	if (res != FR_OK) {
 		int i;
-		i = sprintf((char*)buf_mmc, "Failed to mount 0: %d \r\n", res);
+		i = sprintf(buf_mmc, "Failed to mount 0: %d \r\n", res);
 		oled_putString(1,40, buf_mmc, OLED_COLOR_BLACK, OLED_COLOR_WHITE);
 		return 1;
 	}
 
 	res = f_opendir(&dir, "/");
 	if (res != FR_OK) {
-		(void)sprintf((char*)buf_mmc, "Failed to open /: %d \r\n", res);
+		(void)sprintf(buf_mmc, "Failed to open /: %d \r\n", res);
 		oled_putString(1,40, buf_mmc, OLED_COLOR_BLACK, OLED_COLOR_WHITE);
 		return 1;
 	}
