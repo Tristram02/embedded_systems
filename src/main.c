@@ -244,7 +244,7 @@ uint16_t GetTimeFromUART()
 		else
 		{
 			U0Write(input); //Tx Read Data back
-			data = (int)data * 10 + ((int)input - (int)'0');
+			data = (uint16_t)data * 10 + ((uint16_t)input - (uint16_t)'0');
 		}
 	}
 }
