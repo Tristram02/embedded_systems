@@ -115,28 +115,10 @@ UINT br = 0;
 DIR dir;
 FRESULT res;
 
-
-
-//############################//
-//                            //
-//          FUNKCJE           //
-//                            //
-//############################//
-//############################//
-//                            //
-//           INITY            //
-//                            //
-//############################//
-
-//############################//
-//        INIT SPEAKER        //
-//############################//
-
-
-//############################//
-//         INIT UART          //
-//############################//
-
+/*!
+ *  @brief    inicjalizacja UART
+ *
+ */
 static void init_uart(void)
 {
 	PINSEL_CFG_Type PinCfg;
@@ -161,6 +143,10 @@ static void init_uart(void)
 
 }
 
+/*!
+ *  @brief    inicjazacja bloku UART0
+ */
+
 void initUART0(void)
 {
 	LPC_PINCON->PINSEL0 |= (1<<4) | (1<<6);
@@ -175,11 +161,105 @@ void initUART0(void)
 	LPC_UART0->LCR &= ~(DLAB_BIT);
 }
 
+/*!
+ *  @brief    Przekazuje znak do THR co zapisuje dane w bloku UART0
+ *
+ *  @param txData
+ *             zmienna typu char ktora zostanie
+ *             zapisana do rejsetru THR
+ */
+
 void U0Write(char txData)
 {
 	while(!(LPC_UART0->LSR & THRE)); //wait until THR is empty
 	//now we can write to Tx FIFO
 	LPC_UART0->THR = txData;
+}
+
+/*!
+ *  @brief    Odczytuje dane z bloku UART0
+ *
+ *  @returns  wartosc rejestru RBR bloku UART0
+ */
+
+char U0Read(void)
+{
+	while(!(LPC_UART0->LSR & RDR)); //wait until data arrives in Rx FIFO
+	return LPC_UART0->RBR;
+}
+
+
+/*!
+ *  @brief    Odczytuje wartosc podana poprzez UART i jest dostosowana
+ *  		  do podawania daty oraz godziny
+ *
+ *  @returns  Zwraca wartosc liczbowa 16-bitowa
+ *  @side effects:
+ *            wartosc zwracana moze przekraczacz maksymalne wartosci RTC
+ */
+
+uint16_t GetTimeFromUART()
+{
+	uint16_t data = 0;
+	while (1)
+	{
+		char input = U0Read(); //Read Data from Rx
+		if(input == ENTER) //Check if user pressed Enter key
+		{
+			//Send NEW Line Character(s) i.e. "\n"
+			U0Write(ENTER); //Comment this for Linux or MacOS
+			U0Write(LINE_FEED); //Windows uses CR+LF for newline.
+		}
+		else if(input == 'n')
+		{
+			return 0;
+		}
+		else if(input == ' ')
+		{
+			U0Write(input); //Tx Read Data back
+			if (data < 0)
+			{
+				char msg[] = "Prawdopodobnie wybrales zle dane! Ustawiam je jako 1\n\r";
+				writeUARTMsg(msg);
+				return 1;
+			}
+			return data;
+		}
+		else
+		{
+			U0Write(input); //Tx Read Data back
+			data = data * 10 + (input - '0');
+		}
+	}
+}
+
+/*!
+ *  @brief    Wypisuje wiadomosc zawarta w tablicy znakow
+ *
+ *  @param nazwa  parametru 1
+ *             opis parametru 1
+ *  @param nazwa  parametru 2
+ *             opis parametru 2
+ *
+ *  @param nazwa  parametru n
+ *             opis parametru n
+ *  @returns  np. tak: true on success, false otherwise
+ *  @side effects:
+ *            efekty uboczne
+ */
+
+void writeUARTMsg(char msg[])
+{
+	int count = 0;
+	while( msg[count] != '\0' )
+	{
+		U0Write(msg[count]);
+		count++;
+	}
+	//Send NEW Line Character(s) i.e. "\n"
+	U0Write(LINE_FEED);
+	U0Write(ENTER);
+	count = 0; // reset counter
 }
 
 //############################//
@@ -305,7 +385,7 @@ void save_log(uint8_t log[], uint8_t filename[])
 {
 	FRESULT a = f_open(&fp, filename, FA_OPEN_APPEND | FA_WRITE);
 		if(a == FR_OK) {
-			if(f_write(&fp, log, sizeof(log), &bw) == FR_OK) {
+			if(f_write(&fp, log, strlen(log), &bw) == FR_OK) {
 
 			} else {
 				oled_putString(1,41, "Zapis nieudany.", OLED_COLOR_BLACK, OLED_COLOR_WHITE);
@@ -644,12 +724,12 @@ int main (void)
 	uint8_t sw3_pressed=0;
 	uint8_t sw4_pressed=0;
 	uint8_t stop_timer=0;
-	uint8_t hour = 15;
-	uint8_t minute = 3;
-	uint8_t second = 47;
-	uint8_t day = 21;
-	uint8_t month = 5;
-	uint16_t year = 2023;
+	uint8_t hour = 0;
+	uint8_t minute = 0;
+	uint8_t second = 0;
+	uint8_t day = 1;
+	uint8_t month = 1;
+	uint16_t year = 1900;
 
 	uint32_t s;
 	uint32_t ms;
@@ -668,8 +748,10 @@ int main (void)
 	uint16_t offset = 240;
 	uint8_t len = 0;
 
-	char uartMsg[] = "Hi robert!";
-	int count = 0;
+	char uartEnter[] = "Ktos wszedl!";
+	char uartLeave[] = "Ktos wyszedl!";
+	char data = 0;
+
 
 
 //############################//
@@ -685,7 +767,7 @@ int main (void)
 
 
     oled_init();
-    init_uart();
+    initUART0();
 
 
 
@@ -693,15 +775,32 @@ int main (void)
 //      REAL TIME CLOCK       //
 //############################//
 
+    char msg[] = "Wprowadz date oraz godzine. Jesli chcesz pominac wpisz\'n\'\n\rPodaj dane w kolejnosc:\n\rDzien Miesiac Rok Godzina Minuta Sekunda\n\r";
+    writeUARTMsg(msg);
 
-//    RTC_Init(LPC_RTC);
+    day = GetTimeFromUART();
+    if (day != 0)
+    {
+		month = GetTimeFromUART();
+		year = GetTimeFromUART();
+		hour = GetTimeFromUART();
+		minute = GetTimeFromUART();
+		second = GetTimeFromUART();
+    }
+    else
+    	day = 1;
 
-//    RTC_SetTime(LPC_RTC, RTC_TIMETYPE_HOUR, 0);
-//    RTC_SetTime(LPC_RTC, RTC_TIMETYPE_MINUTE, 0);
-//    RTC_SetTime(LPC_RTC, RTC_TIMETYPE_SECOND, 0);
+    RTC_Init(LPC_RTC);
+
+    RTC_SetTime(LPC_RTC, RTC_TIMETYPE_DAYOFMONTH, day);
+	RTC_SetTime(LPC_RTC, RTC_TIMETYPE_MONTH, month);
+	RTC_SetTime(LPC_RTC, RTC_TIMETYPE_YEAR, year);
+    RTC_SetTime(LPC_RTC, RTC_TIMETYPE_HOUR, hour);
+    RTC_SetTime(LPC_RTC, RTC_TIMETYPE_MINUTE, minute);
+    RTC_SetTime(LPC_RTC, RTC_TIMETYPE_SECOND, second);
 
 
-//    RTC_Cmd(LPC_RTC, 1);
+    RTC_Cmd(LPC_RTC, 1);
 
 
 //############################//
@@ -725,11 +824,9 @@ int main (void)
 //############################//
 //            MMC             //
 //############################//
-    snprintf(buf_mmc, sizeof(buf_mmc), "%02d:%02d:%02d %02d.%02d.%04dr.", hour, minute, second, day, month, year);
+
+    snprintf(buf_mmc, sizeof(buf_mmc), "%02d:%02d:%02d %02d.%02d.%04dr.\n", hour, minute, second, day, month, year);
     save_log(buf_mmc, "log.txt");
-
-
-
 
 //############################//
 //           EEPROM           //
@@ -737,21 +834,29 @@ int main (void)
 
 len = eeprom_read(pBuf, offset, EEPROMLen);
 
-if (len == EEPROMLen)
+if (len != EEPROMLen)
 {
-	save_log("Blad EEPROM\n","log.txt");
+	snprintf(buf_mmc, sizeof(buf_mmc), "%02d:%02d:%02d %02d.%02d.%04dr.", hour, minute, second, day, month, year);
+	save_log(buf_mmc, "log.txt");
+	save_log("\nBlad EEPROM\n","log.txt");
 
 	FRESULT a =f_open(&fp, "ludzie.txt", FA_READ);
 	if(a == FR_OK) {
 		if(f_read(&fp, pBuf, EEPROMLen, &br) == FR_OK) {
-			save_log("Odczyt z SD liczby ludzi\n","log.txt");
+			snprintf(buf_mmc, sizeof(buf_mmc), "%02d:%02d:%02d %02d.%02d.%04dr.", hour, minute, second, day, month, year);
+			save_log(buf_mmc, "log.txt");
+			save_log("\nOdczyt z SD liczby ludzi\n","log.txt");
 			liczbaOsob = arrayToInt(pBuf) - 1;
 		} else {
-			save_log("Blad odczytu z SD liczby ludzi\n","log.txt");
+			snprintf(buf_mmc, sizeof(buf_mmc), "%02d:%02d:%02d %02d.%02d.%04dr.", hour, minute, second, day, month, year);
+			save_log(buf_mmc, "log.txt");
+			save_log("\nBlad odczytu z SD liczby ludzi\n","log.txt");
 		}
 	}
 	else {
-		oled_putString(1,41, "Blad SD", OLED_COLOR_BLACK, OLED_COLOR_WHITE);
+		snprintf(buf_mmc, sizeof(buf_mmc), "%02d:%02d:%02d %02d.%02d.%04dr.", hour, minute, second, day, month, year);
+		save_log(buf_mmc, "log.txt");
+		oled_putString(1,41, "\nBlad SD\n", OLED_COLOR_BLACK, OLED_COLOR_WHITE);
 	}
 	f_close(&fp);
 
@@ -759,7 +864,9 @@ if (len == EEPROMLen)
 else
 {
 	liczbaOsob = arrayToInt(pBuf) - 1;
-	save_log("Odczyt z EEPROM liczby ludzi\n","log.txt");
+	snprintf(buf_mmc, sizeof(buf_mmc), "%02d:%02d:%02d %02d.%02d.%04dr.", hour, minute, second, day, month, year);
+	save_log(buf_mmc, "log.txt");
+	save_log("\nOdczyt z EEPROM liczby ludzi\n","log.txt");
 }
 
 
@@ -768,34 +875,18 @@ else
 //############################//
     while(1) {
 
-    	while( uartMsg[count]!='\0' )
-		{
-			U0Write(uartMsg[count]);
-			count++;
-		}
-		//Send NEW Line Character(s) i.e. "\n"
-		U0Write(LINE_FEED); //Windows uses CR+LF for newline.
-		count=0; // reset counter
+    	//############################//
+		//            DATA            //
+		//############################//
+
+		display_time();
+		oled_putString(1,40, buf, OLED_COLOR_BLACK, OLED_COLOR_WHITE);//	PRINT DATA ON OLED
 
 		//############################//
 		//        BUTTON VALUE        //
 		//############################//
 
 		sw3 = ((GPIO_ReadValue(0) >> 4 ) & 0x01);
-		sw4 = ((GPIO_ReadValue(1) >> 4) & 0x01);
-
-		if (sw4 != 0)
-		{
-			sw4_pressed = 0;
-		}
-
-		if (sw4 == 0 && sw4_pressed == 0)
-		{
-			sw4_pressed = 1;
-			liczbaOsob += 1;
-			snprintf(pBuf, 9, "%2d", liczbaOsob);
-			oled_putString(70,20, pBuf, OLED_COLOR_BLACK, OLED_COLOR_WHITE);
-		}
 
 		if (sw3 != 0) {
 			sw3_pressed = 0;
@@ -828,9 +919,16 @@ else
 				snprintf(buf, 9, "%2d.%3d", s, ms);//	CONVERT MEASURED TIME
 				oled_putString(40,9, buf, OLED_COLOR_BLACK, OLED_COLOR_WHITE);//	PRINT TIME ON OLED
 
+
 				liczbaOsob += 1;
 				snprintf(pBuf, 9, "%2d", liczbaOsob);
 				oled_putString(70,20, pBuf, OLED_COLOR_BLACK, OLED_COLOR_WHITE);
+
+				//############################//
+				//            UART            //
+				//############################//
+
+				writeUARTMsg(uartEnter);
 
 				//############################//
 				//        PLAY MELODY         //
@@ -843,7 +941,9 @@ else
 		len = eeprom_write(pBuf, offset, EEPROMLen);
 		if (len != EEPROMLen)
 		{
-			save_log("Blad zapisu do EEPROM\n","log.txt");
+			snprintf(buf_mmc, sizeof(buf_mmc), "%02d:%02d:%02d %02d.%02d.%04dr.", hour, minute, second, day, month, year);
+			save_log(buf_mmc, "log.txt");
+			save_log("\nBlad zapisu do EEPROM\n","log.txt");
 		}
 
     }
