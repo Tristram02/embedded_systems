@@ -171,7 +171,7 @@ void initUART0(void)
 
 void U0Write(char txData)
 {
-	while(!(LPC_UART0->LSR & THRE)); //wait until THR is empty
+	while(!(LPC_UART0->LSR & THRE)){}; //wait until THR is empty
 	//now we can write to Tx FIFO
 	LPC_UART0->THR = txData;
 }
@@ -184,7 +184,7 @@ void U0Write(char txData)
 
 char U0Read(void)
 {
-	while(!(LPC_UART0->LSR & RDR)); //wait until data arrives in Rx FIFO
+	while(!(LPC_UART0->LSR & RDR)){}; //wait until data arrives in Rx FIFO
 	return LPC_UART0->RBR;
 }
 
@@ -588,8 +588,9 @@ void makeLEDsColor(uint32_t time) {
 
 	    if((int)time > 3){
 	         for(int i=0; i<50; i++) {
-	            if ((int)count < 8)
+	            if ((int)count < 8){
 	                (unsigned int)ledOn |= ((unsigned int)1 << count);
+				}
 
 	            pca9532_setLeds(ledOn, 0);
 
@@ -609,9 +610,9 @@ void makeLEDsColor(uint32_t time) {
 	    else{
 	        count = 8;
 	         for(int i=0; i<50; i++) {
-	            if ((int)count < 16 )
+	            if ((int)count < 16 ){
 	                (unsigned int)ledOn |= ((unsigned int)1 << count);
-
+				}
 
 	            pca9532_setLeds(ledOn, 0);
 
@@ -841,8 +842,9 @@ int main(void)
 		minute = GetTimeFromUART();
 		second = GetTimeFromUART();
 	}
-	else
+	else{
 		day = 1;
+	}
 
 	RTC_Init(LPC_RTC);
 
@@ -861,8 +863,8 @@ int main(void)
 	//       ERROR CAPTURE        //
 	//############################//
 
-	if (SysTick_Config(SystemCoreClock / 1000)) {
-		while (1);  // Capture error
+	if (SysTick_Config(SystemCoreClock / 1000) == 1) {
+		while(1){};  // Capture error
 	}
 
 	//############################//
@@ -879,7 +881,7 @@ int main(void)
 	//            MMC             //
 	//############################//
 
-	snprintf(buf_mmc, sizeof(buf_mmc), "%02d:%02d:%02d %02d.%02d.%04dr.\n", hour, minute, second, day, month, year);
+	(void)snprintf(buf_mmc, sizeof(buf_mmc), "%02d:%02d:%02d %02d.%02d.%04dr.\n", hour, minute, second, day, month, year);
 	save_log(buf_mmc, "log.txt");
 
 	//############################//
@@ -890,26 +892,26 @@ int main(void)
 
 	if (len != EEPROMLen)
 	{
-		snprintf(buf_mmc, sizeof(buf_mmc), "%02d:%02d:%02d %02d.%02d.%04dr.", hour, minute, second, day, month, year);
+		(void)snprintf(buf_mmc, sizeof(buf_mmc), "%02d:%02d:%02d %02d.%02d.%04dr.", hour, minute, second, day, month, year);
 		save_log(buf_mmc, "log.txt");
 		save_log("\nBlad EEPROM\n", "log.txt");
 
 		FRESULT a = f_open(&fp, "ludzie.txt", FA_READ);
 		if (a == FR_OK) {
 			if (f_read(&fp, pBuf, EEPROMLen, &br) == FR_OK) {
-				snprintf(buf_mmc, sizeof(buf_mmc), "%02d:%02d:%02d %02d.%02d.%04dr.", hour, minute, second, day, month, year);
+				(void)snprintf(buf_mmc, sizeof(buf_mmc), "%02d:%02d:%02d %02d.%02d.%04dr.", hour, minute, second, day, month, year);
 				save_log(buf_mmc, "log.txt");
 				save_log("\nOdczyt z SD liczby ludzi\n", "log.txt");
 				liczbaOsob = arrayToInt(pBuf) - 1;
 			}
 			else {
-				snprintf(buf_mmc, sizeof(buf_mmc), "%02d:%02d:%02d %02d.%02d.%04dr.", hour, minute, second, day, month, year);
+				(void)snprintf(buf_mmc, sizeof(buf_mmc), "%02d:%02d:%02d %02d.%02d.%04dr.", hour, minute, second, day, month, year);
 				save_log(buf_mmc, "log.txt");
 				save_log("\nBlad odczytu z SD liczby ludzi\n", "log.txt");
 			}
 		}
 		else {
-			snprintf(buf_mmc, sizeof(buf_mmc), "%02d:%02d:%02d %02d.%02d.%04dr.", hour, minute, second, day, month, year);
+			(void)snprintf(buf_mmc, sizeof(buf_mmc), "%02d:%02d:%02d %02d.%02d.%04dr.", hour, minute, second, day, month, year);
 			save_log(buf_mmc, "log.txt");
 			oled_putString(1, 41, "\nBlad SD\n", OLED_COLOR_BLACK, OLED_COLOR_WHITE);
 		}
@@ -919,7 +921,7 @@ int main(void)
 	else
 	{
 		liczbaOsob = arrayToInt(pBuf) - 1;
-		snprintf(buf_mmc, sizeof(buf_mmc), "%02d:%02d:%02d %02d.%02d.%04dr.", hour, minute, second, day, month, year);
+		(void)snprintf(buf_mmc, sizeof(buf_mmc), "%02d:%02d:%02d %02d.%02d.%04dr.", hour, minute, second, day, month, year);
 		save_log(buf_mmc, "log.txt");
 		save_log("\nOdczyt z EEPROM liczby ludzi\n", "log.txt");
 	}
@@ -968,11 +970,10 @@ int main(void)
 			msTicks = 0;
 			entry = 1;
 		}
-		else if (signal1 == 0 && signal2 == 1 && leave)
-		{
+		else if (signal1 == 0 && signal2 == 1 && leave){
 			leave = 0;
 			liczbaOsob -= 1;
-			snprintf(pBuf, 9, "%2d", liczbaOsob);
+			(void)snprintf(pBuf, 9, "%2d", liczbaOsob);
 			oled_putString(70, 20, pBuf, OLED_COLOR_BLACK, OLED_COLOR_WHITE);
 			makeLEDsColor(5);//	LEDY
 		}
@@ -988,24 +989,22 @@ int main(void)
 			colorRgbDiode(s);//	DIODA
 			makeLEDsColor(1);//	LEDY
 
-			snprintf(buf, 9, "%2d.%3d", s, ms);//	CONVERT MEASURED TIME
+			(void)snprintf(buf, 9, "%2d.%3d", s, ms);//	CONVERT MEASURED TIME
 			oled_putString(40, 9, buf, OLED_COLOR_BLACK, OLED_COLOR_WHITE);//	PRINT TIME ON OLED
 
 
 			liczbaOsob += 1;
-			snprintf(pBuf, 9, "%2d", liczbaOsob);
+			(void)snprintf(pBuf, 9, "%2d", liczbaOsob);
 			oled_putString(70, 20, pBuf, OLED_COLOR_BLACK, OLED_COLOR_WHITE);
 		}
-		else if (signal2 == 0 && signal1 == 1)
-		{
+		else if (signal2 == 0 && signal1 == 1){
 			leave = 1;
 		}
 
 
 		len = eeprom_write(pBuf, offset, EEPROMLen);
-		if (len != EEPROMLen)
-		{
-			snprintf(buf_mmc, sizeof(buf_mmc), "%02d:%02d:%02d %02d.%02d.%04dr.", hour, minute, second, day, month, year);
+		if (len != EEPROMLen){
+			(void)snprintf(buf_mmc, sizeof(buf_mmc), "%02d:%02d:%02d %02d.%02d.%04dr.", hour, minute, second, day, month, year);
 			save_log(buf_mmc, "log.txt");
 			save_log("\nBlad zapisu do EEPROM\n", "log.txt");
 		}
