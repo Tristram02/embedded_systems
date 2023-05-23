@@ -583,7 +583,7 @@ static void playSong(uint8_t *song)
     }
 }
 
-static uint8_t * buzzer_sound = (uint8_t*)"A1_";
+uint8_t * buzzer_sound = (uint8_t*)"A1_";
 
 
 
