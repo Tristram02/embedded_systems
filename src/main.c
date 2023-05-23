@@ -719,7 +719,7 @@ static void intToString(int value, uint8_t* pBuf, uint32_t len, uint32_t base)
 
     // the buffer must not be null and at least have a length of 2 to handle one
     // digit and null-terminator
-    if (pBuf == NULL || (int)len < 2)
+    if ((pBuf == NULL) || ((int)len < 2))
     {
         return;
     }
@@ -727,7 +727,7 @@ static void intToString(int value, uint8_t* pBuf, uint32_t len, uint32_t base)
     // a valid base cannot be less than 2 or larger than 36
     // a base value of 2 means binary representation. A value of 1 would mean only zeros
     // a base larger than 36 can only be used if a larger alphabet were used.
-    if ((int)base < 2 || (int)base > 36)
+    if (((int)base < 2) || ((int)base > 36))
     {
         return;
     }
@@ -991,7 +991,7 @@ int main(void)
 			sw3_pressed = 0;
 		}
 
-		if ((int)sw3 == 0 && (int)sw3_pressed == 0) {
+		if (((int)sw3 == 0) && ((int)sw3_pressed == 0)) {
 			sw3_pressed = 1;//	BUTTON PRESSED
 
 
@@ -1004,12 +1004,12 @@ int main(void)
 
 		}
 
-		if ((int)signal1 == 0 && (int)signal2 == 1 && !leave)
+		if (((int)signal1 == 0) && ((int)signal2 == 1) && (!leave))
 		{
 			msTicks = 0;
 			entry = 1;
 		}
-		else if ((int)signal1 == 0 && (int)signal2 == 1 && leave){
+		else if (((int)signal1 == 0) && ((int)signal2 == 1) && leave){
 			leave = 0;
 			(int)liczbaOsob -= 1;
 			(void)snprintf(pBuf, 9, "%2d", liczbaOsob);
@@ -1019,7 +1019,7 @@ int main(void)
 		else{}
 
 
-		if ((int)signal2 == 0 && (int)signal1 == 1 && entry)
+		if (((int)signal2 == 0) && ((int)signal1 == 1) && entry)
 		{
 			entry = 0;
 			s = getTicks();
@@ -1037,7 +1037,7 @@ int main(void)
 			(void)snprintf(pBuf, 9, "%2d", liczbaOsob);
 			oled_putString(70, 20, pBuf, OLED_COLOR_BLACK, OLED_COLOR_WHITE);
 		}
-		else if ((int)signal2 == 0 && (int)signal1 == 1){
+		else if (((int)signal2 == 0) && ((int)signal1 == 1)){
 			leave = 1;
 		}
 		else{}
