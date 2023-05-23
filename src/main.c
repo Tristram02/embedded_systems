@@ -510,7 +510,7 @@ static uint32_t getNote(uint8_t ch)
     if ((int)ch >= (int)'A' && (int)ch <= (int)'G')
         return notes[(int)ch - (int)'A'];
 
-    if ((int)ch >= 'a' && (int)ch <= 'g')
+    if ((int)ch >= (int)'a' && (int)ch <= (int)'g')
         return notes[(int)ch - (int)'a' + 7];
 
     return 0;
