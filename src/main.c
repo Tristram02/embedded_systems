@@ -83,22 +83,6 @@
 //############################//
 
 
-static uint32_t notes[] = {
-        2272, // A - 440 Hz
-        2024, // B - 494 Hz
-        3816, // C - 262 Hz
-        3401, // D - 294 Hz
-        3030, // E - 330 Hz
-        2865, // F - 349 Hz
-        2551, // G - 392 Hz
-        1136, // a - 880 Hz
-        1012, // b - 988 Hz
-        1912, // c - 523 Hz
-        1703, // d - 587 Hz
-        1517, // e - 659 Hz
-        1432, // f - 698 Hz
-        1275, // g - 784 Hz
-};
 
 
 static uint32_t msTicks = 0;
@@ -107,7 +91,7 @@ static uint8_t pBuf[EEPROMLen]; //	Bufor do przechowania liczby ludzi
 
 LPC_RTC_TypeDef *RTCx = (LPC_RTC_TypeDef *) LPC_RTC_BASE;
 
-static FATFS Fatfs[1];
+
 static uint8_t buf_mmc[22]; //21 znaki alarmu + 1 znak LF
 FIL *fp;
 UINT bw = 0;
@@ -405,7 +389,7 @@ static void init_adc(void)
 
 static int init_mmc(void)
 {
-
+	static FATFS Fatfs[1];
 	res = f_mount(&Fatfs[0],"", 0);
 	if (res != FR_OK) {
 		int i;
@@ -506,6 +490,23 @@ static void playNote(uint32_t note, uint32_t durationMs)
 
 static uint32_t getNote(uint8_t ch)
 {
+	static uint32_t notes[] = {
+        2272, // A - 440 Hz
+        2024, // B - 494 Hz
+        3816, // C - 262 Hz
+        3401, // D - 294 Hz
+        3030, // E - 330 Hz
+        2865, // F - 349 Hz
+        2551, // G - 392 Hz
+        1136, // a - 880 Hz
+        1012, // b - 988 Hz
+        1912, // c - 523 Hz
+        1703, // d - 587 Hz
+        1517, // e - 659 Hz
+        1432, // f - 698 Hz
+        1275, // g - 784 Hz
+};
+
     if ((int)ch >= 'A' && (int)ch <= 'G')
         return notes[(int)ch - 'A'];
 
