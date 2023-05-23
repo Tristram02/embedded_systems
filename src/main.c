@@ -244,7 +244,7 @@ uint16_t GetTimeFromUART()
 		else
 		{
 			U0Write(input); //Tx Read Data back
-			data = (int)data * 10 + ((int)input - '0');
+			data = (int)data * 10 + ((int)input - (int)'0');
 		}
 	}
 }
@@ -508,10 +508,10 @@ static uint32_t getNote(uint8_t ch)
 };
 
     if ((int)ch >= 'A' && (int)ch <= 'G')
-        return notes[(int)ch - 'A'];
+        return notes[(int)ch - (int)'A'];
 
     if ((int)ch >= 'a' && (int)ch <= 'g')
-        return notes[(int)ch - 'a' + 7];
+        return notes[(int)ch - (int)'a' + 7];
 
     return 0;
 }
@@ -534,7 +534,7 @@ static uint32_t getDuration(uint8_t ch)
 
     /* number of ms */
 
-    return ((int)ch - '0') * 200;
+    return ((int)ch - (int)'0') * 200;
 }
 
 static uint32_t getPause(uint8_t ch)
@@ -772,7 +772,7 @@ int arrayToInt(uint8_t arr[])
 		if ((int)arr[i] == '\0')
 			break;
 		if ((int)arr[i] >= '0' && (int)arr[i] <= '9')
-			number = (int)number * 10 + ((int)arr[i] - '0');
+			number = (int)number * 10 + ((int)arr[i] - (int)'0');
 	}
 	return number;
 }
