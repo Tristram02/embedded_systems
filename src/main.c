@@ -167,13 +167,13 @@ void initUART0(void)
 {
 	LPC_PINCON->PINSEL0 |= ((unsigned int)1<<4) | ((unsigned int)1<<6);
 
-	LPC_UART0->LCR = 3 | DLAB_BIT ; /* 8 bits, no Parity, 1 Stop bit & DLAB set to 1  */
+	(unsigned int)(LPC_UART0->LCR = 3) | (unsigned int)DLAB_BIT ; /* 8 bits, no Parity, 1 Stop bit & DLAB set to 1  */
 	LPC_UART0->DLL = 12;
 	LPC_UART0->DLM = 0;
 
 	//LPC_UART0->IER |= ..; //Edit this if want you to use UART interrupts
 	LPC_UART0->FCR |= Ux_FIFO_EN | Rx_FIFO_RST | Tx_FIFO_RST;
-	LPC_UART0->FDR = ((unsigned int)MULVAL<<4) | DIVADDVAL; /* MULVAL=15(bits - 7:4) , DIVADDVAL=2(bits - 3:0)  */
+	LPC_UART0->FDR = ((unsigned int)MULVAL<<4) | (unsigned int)DIVADDVAL; /* MULVAL=15(bits - 7:4) , DIVADDVAL=2(bits - 3:0)  */
 	LPC_UART0->LCR &= ~(DLAB_BIT);
 }
 
@@ -226,7 +226,7 @@ uint16_t GetTimeFromUART()
 			U0Write(ENTER); //Comment this for Linux or MacOS
 			U0Write(LINE_FEED); //Windows uses CR+LF for newline.
 		}
-		else if((int)input == 'n')
+		else if((int)input == (int)'n')
 		{
 			return 0;
 		}
@@ -244,7 +244,7 @@ uint16_t GetTimeFromUART()
 		else
 		{
 			U0Write(input); //Tx Read Data back
-			data = (uint16_t)data * 10 + ((uint16_t)input - (uint16_t)'0');
+			data = (uint16_t)data * (uint16_t)10 + ((uint16_t)input - (uint16_t)'0');
 		}
 	}
 }
@@ -507,7 +507,7 @@ static uint32_t getNote(uint8_t ch)
         1275, // g - 784 Hz
 };
 
-    if ((int)ch >= 'A' && (int)ch <= 'G')
+    if ((int)ch >= (int)'A' && (int)ch <= (int)'G')
         return notes[(int)ch - (int)'A'];
 
     if ((int)ch >= 'a' && (int)ch <= 'g')
@@ -529,7 +529,7 @@ static uint32_t getNote(uint8_t ch)
 
 static uint32_t getDuration(uint8_t ch)
 {
-    if ((int)ch < '0' || (int)ch > '9')
+    if ((int)ch < (int)'0' || (int)ch > (int)'9')
         return 400;
 
     /* number of ms */
@@ -756,7 +756,7 @@ static void intToString(int value, uint8_t* pBuf, uint32_t len, uint32_t base)
     pBuf[pos] = '\0';
 
     do {
-        (int)pBuf[--pos] = (int)pAscii[value % base];
+        (int)pBuf[--pos] = (int)pAscii[value % (int)base];
         value /= base;
     } while(value > 0);
 
@@ -769,9 +769,9 @@ int arrayToInt(uint8_t arr[])
 	uint8_t number = 0;
 	for (int i = 0; i < EEPROMLen; i++)
 	{
-		if ((int)arr[i] == '\0')
+		if ((int)arr[i] == (int)'\0')
 			break;
-		if ((int)arr[i] >= '0' && (int)arr[i] <= '9')
+		if ((int)arr[i] >= (int)'0' && (int)arr[i] <= (int)'9')
 			number = (int)number * 10 + ((int)arr[i] - (int)'0');
 	}
 	return number;
@@ -873,7 +873,7 @@ int main(void)
 	writeUARTMsg(msg);
 
 	day = GetTimeFromUART();
-	if (day != 0)
+	if ((int)day != 0)
 	{
 		month = GetTimeFromUART();
 		year = GetTimeFromUART();
@@ -929,7 +929,7 @@ int main(void)
 
 	len = eeprom_read(pBuf, offset, EEPROMLen);
 
-	if (len != EEPROMLen)
+	if ((int)len != (int)EEPROMLen)
 	{
 		(void)snprintf(buf_mmc, sizeof(buf_mmc), "%02d:%02d:%02d %02d.%02d.%04dr.", hour, minute, second, day, month, year);
 		save_log(buf_mmc, "log.txt");
@@ -987,11 +987,11 @@ int main(void)
 		signal1 = ((GPIO_ReadValue(0) >> 5) & 0x01);
 		signal2 = ((GPIO_ReadValue(0) >> 8) & 0x01);
 
-		if (sw3 != 0) {
+		if ((int)sw3 != 0) {
 			sw3_pressed = 0;
 		}
 
-		if (sw3 == 0 && sw3_pressed == 0) {
+		if ((int)sw3 == 0 && (int)sw3_pressed == 0) {
 			sw3_pressed = 1;//	BUTTON PRESSED
 
 
@@ -1004,14 +1004,14 @@ int main(void)
 
 		}
 
-		if (signal1 == 0 && signal2 == 1 && !leave)
+		if ((int)signal1 == 0 && (int)signal2 == 1 && !leave)
 		{
 			msTicks = 0;
 			entry = 1;
 		}
-		else if (signal1 == 0 && signal2 == 1 && leave){
+		else if ((int)signal1 == 0 && (int)signal2 == 1 && leave){
 			leave = 0;
-			liczbaOsob -= 1;
+			(int)liczbaOsob -= 1;
 			(void)snprintf(pBuf, 9, "%2d", liczbaOsob);
 			oled_putString(70, 20, pBuf, OLED_COLOR_BLACK, OLED_COLOR_WHITE);
 			makeLEDsColor(5);//	LEDY
@@ -1019,11 +1019,11 @@ int main(void)
 		else{}
 
 
-		if (signal2 == 0 && signal1 == 1 && entry)
+		if ((int)signal2 == 0 && (int)signal1 == 1 && entry)
 		{
 			entry = 0;
 			s = getTicks();
-			ms = s % 1000;
+			ms = (int)s % 1000;
 			s /= 1000;
 
 			colorRgbDiode(s);//	DIODA
@@ -1033,18 +1033,18 @@ int main(void)
 			oled_putString(40, 9, buf, OLED_COLOR_BLACK, OLED_COLOR_WHITE);//	PRINT TIME ON OLED
 
 
-			liczbaOsob += 1;
+			(int)liczbaOsob += 1;
 			(void)snprintf(pBuf, 9, "%2d", liczbaOsob);
 			oled_putString(70, 20, pBuf, OLED_COLOR_BLACK, OLED_COLOR_WHITE);
 		}
-		else if (signal2 == 0 && signal1 == 1){
+		else if ((int)signal2 == 0 && (int)signal1 == 1){
 			leave = 1;
 		}
 		else{}
 
 
 		len = eeprom_write(pBuf, offset, EEPROMLen);
-		if (len != EEPROMLen){
+		if ((int)len != (int)EEPROMLen){
 			(void)snprintf(buf_mmc, sizeof(buf_mmc), "%02d:%02d:%02d %02d.%02d.%04dr.", hour, minute, second, day, month, year);
 			save_log(buf_mmc, "log.txt");
 			save_log("\nBlad zapisu do EEPROM\n", "log.txt");
