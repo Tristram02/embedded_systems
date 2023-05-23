@@ -772,7 +772,7 @@ int arrayToInt(uint8_t arr[])
 		if ((int)arr[i] == (int)'\0')
 			break;
 		if ((int)arr[i] >= (int)'0' && (int)arr[i] <= (int)'9')
-			number = (int)number * 10 + ((int)arr[i] - (int)'0');
+			number = (uint8_t)number * (uint8_t)10 + ((uint8_t)arr[i] - (uint8_t)'0');
 	}
 	return number;
 }
