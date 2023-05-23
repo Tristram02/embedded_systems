@@ -165,7 +165,7 @@ static void init_uart(void)
 
 void initUART0(void)
 {
-	LPC_PINCON->PINSEL0 |= (1<<4) | (1<<6);
+	LPC_PINCON->PINSEL0 |= ((unsigned int)1<<4) | ((unsigned int)1<<6);
 
 	LPC_UART0->LCR = 3 | DLAB_BIT ; /* 8 bits, no Parity, 1 Stop bit & DLAB set to 1  */
 	LPC_UART0->DLL = 12;
