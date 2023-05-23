@@ -219,7 +219,7 @@ uint16_t GetTimeFromUART()
 			U0Write(input); //Tx Read Data back
 			if ((int)data < 0)
 			{
-				char msg[] = "Prawdopodobnie wybrales zle dane! Ustawiam je jako 1\n\r";
+				const char msg[] = "Prawdopodobnie wybrales zle dane! Ustawiam je jako 1\n\r";
 				writeUARTMsg(msg);
 				return 1;
 			}
@@ -388,6 +388,7 @@ static int init_mmc(void)
 		oled_putString(1,40, buf_mmc, OLED_COLOR_BLACK, OLED_COLOR_WHITE);
 		return 1;
 	}
+	return 0;
 }
 
 /*!
@@ -399,7 +400,7 @@ static int init_mmc(void)
  *             Nazwa pliku do ktorego ma zostac zapisany komunikat
  */
 
-void save_log(uint8_t log[], uint8_t filename[])
+void save_log(const uint8_t log[], const uint8_t filename[])
 {
 	FRESULT a = f_open(&fp, filename, FA_OPEN_APPEND | FA_WRITE);
 		if(a == FR_OK) {
@@ -803,9 +804,10 @@ int main(void)
 	uint16_t offset = 240;
 	uint8_t len = 0;
 
-	char uartEnter[] = "Ktos wszedl!";
-	char uartLeave[] = "Ktos wyszedl!";
+	const char uartEnter[] = "Ktos wszedl!";
+	const char uartLeave[] = "Ktos wyszedl!";
 	char data = 0;
+
 
 
 
@@ -830,7 +832,7 @@ int main(void)
 	//      REAL TIME CLOCK       //
 	//############################//
 
-	char msg[] = "Wprowadz date oraz godzine. Jesli chcesz pominac wpisz \'n\'\n\rPodaj dane w kolejnosc:\n\rDzien Miesiac Rok Godzina Minuta Sekunda\n\r";
+	const char msg[] = "Wprowadz date oraz godzine. Jesli chcesz pominac wpisz \'n\'\n\rPodaj dane w kolejnosc:\n\rDzien Miesiac Rok Godzina Minuta Sekunda\n\r";
 	writeUARTMsg(msg);
 
 	day = GetTimeFromUART();
@@ -874,8 +876,8 @@ int main(void)
 
 	oled_clearScreen(OLED_COLOR_WHITE);
 
-	oled_putString(1, 9, (uint8_t*)"Timer:", OLED_COLOR_BLACK, OLED_COLOR_WHITE);
-	oled_putString(1, 20, (uint8_t*)"IleOsob:", OLED_COLOR_BLACK, OLED_COLOR_WHITE);
+	oled_putString(1, 9, "Timer:", OLED_COLOR_BLACK, OLED_COLOR_WHITE);
+	oled_putString(1, 20, "IleOsob:", OLED_COLOR_BLACK, OLED_COLOR_WHITE);
 
 	//############################//
 	//            MMC             //
@@ -977,6 +979,7 @@ int main(void)
 			oled_putString(70, 20, pBuf, OLED_COLOR_BLACK, OLED_COLOR_WHITE);
 			makeLEDsColor(5);//	LEDY
 		}
+		else{}
 
 
 		if (signal2 == 0 && signal1 == 1 && entry)
@@ -1000,6 +1003,7 @@ int main(void)
 		else if (signal2 == 0 && signal1 == 1){
 			leave = 1;
 		}
+		else{}
 
 
 		len = eeprom_write(pBuf, offset, EEPROMLen);
@@ -1022,3 +1026,5 @@ void check_failed(uint8_t *file, uint32_t line)
 	while(1){};
 
 }
+check_failed() ma parametry, które nie są używane, misra nie dopuszcza,
+sorry za kod, a nie komentarz, ale zróbcie coś z tym, bo nie wiem czy ta funkcja jest obligatoryjna 
