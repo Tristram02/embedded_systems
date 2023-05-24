@@ -63,7 +63,7 @@
 //############################//
 //            UART            //
 //############################//
-
+//
 #define RDR			((unsigned int)1<<0)
 #define THRE		((unsigned int)1<<5)
 #define	MULVAL		15
@@ -99,6 +99,9 @@ UINT br = 0;
 DIR dir;
 FRESULT res;
 
+uint8_t * buzzer_sound = (uint8_t*)"A1_";
+uint8_t * erase_sound = (uint8_t*)"B3_";
+
 
 
 //############################//
@@ -117,6 +120,7 @@ static void init_i2c(void);
 static void init_adc(void);
 static int init_mmc(void);
 void save_log(const uint8_t log[], const uint8_t filename[]);
+void init_speaker(void);
 static void playNote(uint32_t note, uint32_t durationMs);
 static uint32_t getNote(uint8_t ch);
 static uint32_t getDuration(uint8_t ch);
@@ -132,48 +136,20 @@ static uint32_t getTicks(void);
 int main(void);
 
 /*!
- *  @brief    inicjalizacja UART
- *
- */
-static void init_uart(void)
-{
-	PINSEL_CFG_Type PinCfg;
-	UART_CFG_Type uartCfg;
-
-	/* Initialize UART3 pin connect */
-	PinCfg.Funcnum = 2;
-	PinCfg.Pinnum = 0;
-	PinCfg.Portnum = 0;
-	PINSEL_ConfigPin(&PinCfg);
-	PinCfg.Pinnum = 1;
-	PINSEL_ConfigPin(&PinCfg);
-
-	uartCfg.Baud_rate = 115200;
-	uartCfg.Databits = UART_DATABIT_8;
-	uartCfg.Parity = UART_PARITY_NONE;
-	uartCfg.Stopbits = UART_STOPBIT_1;
-
-	UART_Init(UART_DEV, &uartCfg);
-
-	UART_TxCmd(UART_DEV, ENABLE);
-
-}
-
-/*!
  *  @brief    inicjazacja bloku UART0
  */
 
 void initUART0(void)
 {
-	LPC_PINCON->PINSEL0 |= ((unsigned int)1<<4) | ((unsigned int)1<<6);
+	LPC_PINCON->PINSEL0 |= (1<<4) | (1<<6); //Select TXD0 and RXD0 function for P0.2 & P0.3!
 
-	(unsigned int)(LPC_UART0->LCR = 3) | (unsigned int)DLAB_BIT ; /* 8 bits, no Parity, 1 Stop bit & DLAB set to 1  */
+
+	LPC_UART0->LCR = 3 | DLAB_BIT ; /* 8 bits, no Parity, 1 Stop bit & DLAB set to 1  */
 	LPC_UART0->DLL = 12;
 	LPC_UART0->DLM = 0;
 
-	//LPC_UART0->IER |= ..; //Edit this if want you to use UART interrupts
 	LPC_UART0->FCR |= Ux_FIFO_EN | Rx_FIFO_RST | Tx_FIFO_RST;
-	LPC_UART0->FDR = ((unsigned int)MULVAL<<4) | (unsigned int)DIVADDVAL; /* MULVAL=15(bits - 7:4) , DIVADDVAL=2(bits - 3:0)  */
+	LPC_UART0->FDR = (MULVAL<<4) | DIVADDVAL; /* MULVAL=15(bits - 7:4) , DIVADDVAL=2(bits - 3:0)  */
 	LPC_UART0->LCR &= ~(DLAB_BIT);
 }
 
@@ -269,7 +245,6 @@ void writeUARTMsg(char msg[])
 	//Send NEW Line Character(s) i.e. "\n"
 	U0Write(LINE_FEED);
 	U0Write(ENTER);
-	count = 0; // reset counter
 }
 
 //############################//
@@ -438,6 +413,22 @@ void save_log(const uint8_t log[], const uint8_t filename[])
 //                            //
 //############################//
 
+void init_speaker(void)
+{
+	GPIO_SetDir(2, 1<<0, 1);
+	GPIO_SetDir(2, 1<<1, 1);
+
+	GPIO_SetDir(0, 1<<27, 1);
+	GPIO_SetDir(0, 1<<28, 1);
+	GPIO_SetDir(2, 1<<13, 1);
+	GPIO_SetDir(0, 1<<26, 1);
+
+	GPIO_ClearValue(0, 1<<27); //LM4811-clk
+	GPIO_ClearValue(0, 1<<28); //LM4811-up/dn
+	GPIO_ClearValue(2, 1<<13); //LM4811-shutdn
+}
+
+
 //############################//
 //        PLAY MELODY         //
 //############################//
@@ -537,6 +528,16 @@ static uint32_t getDuration(uint8_t ch)
     return ((int)ch - (int)'0') * 200;
 }
 
+/*!
+ *  @brief    Sprawdza jak dluga powinna byc pauza po nucie
+ *  @param ch
+ *            znak w zaleznosci od ktorego zwracamy wartosc
+ *
+ *  @returns  Domyslnie zwraca 5 jednakze w przypadku rozpoznanego znaku
+ *  		  zawraca inne wartosci pauzy
+ *
+ */
+
 static uint32_t getPause(uint8_t ch)
 {
     switch (ch) {
@@ -552,6 +553,13 @@ static uint32_t getPause(uint8_t ch)
             return 5;
     }
 }
+
+/*!
+ *  @brief    Gra podany utwor
+ *  @param song
+ *             wskaznik na uint8_t ktory przechowuje nuty utworu
+ *
+ */
 
 static void playSong(uint8_t *song)
 {
@@ -583,8 +591,6 @@ static void playSong(uint8_t *song)
     }
 }
 
-uint8_t * buzzer_sound = (uint8_t*)"A1_";
-
 
 
 //############################//
@@ -597,6 +603,14 @@ uint8_t * buzzer_sound = (uint8_t*)"A1_";
 //############################//
 //         LEDS COLOR         //
 //############################//
+
+/*!
+ *  @brief    Tworzy sekwencje zapalania sie ledow w zaleznosci od parametru
+ *
+ *  @param time
+ *             mowi o tym czy uzytkownik wszedl czy wyszedl z pomieszczenia
+ *
+ */
 
 void makeLEDsColor(uint32_t time) 
 {
@@ -625,7 +639,7 @@ void makeLEDsColor(uint32_t time)
 	    if((int)time > 3){
 	         for(int i=0; i<50; i++) {
 	            if ((int)count < 8){
-	                (unsigned int)ledOn |= ((unsigned int)1 << count);
+	                ledOn |= ((unsigned int)1 << count);
 				}
 
 	            pca9532_setLeds(ledOn, 0);
@@ -647,7 +661,7 @@ void makeLEDsColor(uint32_t time)
 	        count = 8;
 	         for(int i=0; i<50; i++) {
 	            if ((int)count < 16 ){
-	                (unsigned int)ledOn |= ((unsigned int)1 << count);
+	                ledOn |= ((unsigned int)1 << count);
 				}
 
 	            pca9532_setLeds(ledOn, 0);
@@ -672,6 +686,13 @@ void makeLEDsColor(uint32_t time)
 //           DIODA            //
 //############################//
 
+/*!
+ *  @brief    Zaswieca diode w zaleznosci od podanego parametru
+ *  @param nazwa  parametru 1
+ *             opis parametru 1
+ *
+ */
+
 static void colorRgbDiode(uint32_t time)
 {
     rgb_init();
@@ -694,6 +715,12 @@ static void colorRgbDiode(uint32_t time)
 //                            //
 //############################//
 
+/*!
+ *  @brief    Pobiera dane z RTC i modyfikuje globalny bufor
+ *  		  ktory przechowuje informacje o aktualnej godzinie
+ *
+ */
+
 void display_time() 
 {
     uint32_t hour;
@@ -710,6 +737,20 @@ void display_time()
 //            OLED            //
 //                            //
 //############################//
+
+/*!
+ *  @brief    Krótko co procedura robi.
+ *  @param nazwa  parametru 1
+ *             opis parametru 1
+ *  @param nazwa  parametru 2
+ *             opis parametru 2
+ *
+ *  @param nazwa  parametru n
+ *             opis parametru n
+ *  @returns  np. tak: true on success, false otherwise
+ *  @side effects:
+ *            efekty uboczne
+ */
 
 static void intToString(int value, uint8_t* pBuf, uint32_t len, uint32_t base)
 {
@@ -756,13 +797,24 @@ static void intToString(int value, uint8_t* pBuf, uint32_t len, uint32_t base)
     pBuf[pos] = '\0';
 
     do {
-        (int)pBuf[--pos] = (int)pAscii[value % (int)base];
+//        (int)pBuf[--pos] = (int)pAscii[value % (int)base];
+        pBuf[--pos] = (int)pAscii[value % (int)base];
         value /= base;
     } while(value > 0);
 
     return;
 
 }
+
+/*!
+ *  @brief    Zamienia tablice znakow w ktorej znajduja sie pojedyncze cyfry
+ *  		  na liczba calkowita
+ *  @param arr
+ *            Tablica znakow ktora przechowuje znaki cyfr
+ *
+ *  @returns  Liczba calkowita uzyskana z tablicy
+ *
+ */
 
 int arrayToInt(uint8_t arr[])
 {
@@ -783,10 +835,21 @@ int arrayToInt(uint8_t arr[])
 //                            //
 //############################//
 
+/*!
+ *  @brief    Inkrementuje timer
+ */
+
 void SysTick_Handler(void) 
 {
     msTicks++;
 }
+
+/*!
+ *  @brief    Pobiera wartosc timera
+ *
+ *  @returns  Liczba calkowita, wartosc timera (w milisekundach)
+ *
+ */
 
 static uint32_t getTicks(void)
 {
@@ -800,6 +863,7 @@ static uint32_t getTicks(void)
 //                            //
 //                            //
 //############################//
+
 
 
 int main(void)
@@ -832,18 +896,12 @@ int main(void)
 	uint32_t delay = 0;
 	uint32_t turnOff = 0;
 
-	uint32_t* ptrCnt = &cnt;
-	uint32_t* ptrSampleRate = &sampleRate;
-	uint32_t* ptrDelay = &delay;
-	uint32_t* ptrTurnOff = &turnOff;
-
 	uint8_t liczbaOsob = 0;
 	uint16_t offset = 240;
 	uint8_t len = 0;
 
 	const char uartEnter[] = "Ktos wszedl!";
 	const char uartLeave[] = "Ktos wyszedl!";
-	char data = 0;
 
 
 
@@ -857,11 +915,9 @@ int main(void)
 	init_adc();
 	if (init_mmc() == 1) return 1;
 	eeprom_init();
-
-
-
 	oled_init();
 	initUART0();
+	init_speaker();
 
 
 
@@ -965,7 +1021,8 @@ int main(void)
 		save_log("\nOdczyt z EEPROM liczby ludzi\n", "log.txt");
 	}
 
-
+	(void)snprintf(pBuf, 9, "%2d", liczbaOsob);
+	oled_putString(70, 20, pBuf, OLED_COLOR_BLACK, OLED_COLOR_WHITE);
 	//############################//
 	//         MAIN LOOP          //
 	//############################//
@@ -987,6 +1044,7 @@ int main(void)
 		signal1 = ((GPIO_ReadValue(0) >> 5) & 0x01);
 		signal2 = ((GPIO_ReadValue(0) >> 8) & 0x01);
 
+
 		if ((int)sw3 != 0) {
 			sw3_pressed = 0;
 		}
@@ -994,13 +1052,10 @@ int main(void)
 		if (((int)sw3 == 0) && ((int)sw3_pressed == 0)) {
 			sw3_pressed = 1;//	BUTTON PRESSED
 
-
-			writeUARTMsg(uartEnter);
-
-			//############################//
-			//        PLAY MELODY         //
-			//############################//
-			playSong(song);
+			liczbaOsob = 0;
+			(void)snprintf(pBuf, 9, "%2d", liczbaOsob);
+			oled_putString(70, 20, pBuf, OLED_COLOR_BLACK, OLED_COLOR_WHITE);
+			playSong(erase_sound);
 
 		}
 
@@ -1011,10 +1066,14 @@ int main(void)
 		}
 		else if (((int)signal1 == 0) && ((int)signal2 == 1) && leave){
 			leave = 0;
-			(int)liczbaOsob -= 1;
+			if (liczbaOsob != 0)
+				liczbaOsob = (int)liczbaOsob - 1;
+
 			(void)snprintf(pBuf, 9, "%2d", liczbaOsob);
 			oled_putString(70, 20, pBuf, OLED_COLOR_BLACK, OLED_COLOR_WHITE);
 			makeLEDsColor(5);//	LEDY
+
+			writeUARTMsg(uartLeave);
 		}
 		else{}
 
@@ -1032,10 +1091,14 @@ int main(void)
 			(void)snprintf(buf, 9, "%2d.%3d", s, ms);//	CONVERT MEASURED TIME
 			oled_putString(40, 9, buf, OLED_COLOR_BLACK, OLED_COLOR_WHITE);//	PRINT TIME ON OLED
 
+			if (liczbaOsob < 255)
+				liczbaOsob = (int)liczbaOsob + 1;
 
-			(int)liczbaOsob += 1;
 			(void)snprintf(pBuf, 9, "%2d", liczbaOsob);
 			oled_putString(70, 20, pBuf, OLED_COLOR_BLACK, OLED_COLOR_WHITE);
+			playSong(buzzer_sound);
+
+			writeUARTMsg(uartEnter);
 		}
 		else if (((int)signal2 == 0) && ((int)signal1 == 1)){
 			leave = 1;
@@ -1053,15 +1116,3 @@ int main(void)
 	}
 
 }
-
-void check_failed(uint8_t *file, uint32_t line)
-{
-	/* User can add his own implementation to report the file name and line number,
-	 ex: printf("Wrong parameters value: file %s on line %d\r\n", file, line) */
-
-	/* Infinite loop */
-	while(1){};
-
-}
-check_failed() ma parametry, które nie są używane, misra nie dopuszcza,
-sorry za kod, a nie komentarz, ale zróbcie coś z tym, bo nie wiem czy ta funkcja jest obligatoryjna 
