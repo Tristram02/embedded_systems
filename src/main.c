@@ -99,6 +99,9 @@ UINT br = 0;
 DIR dir;
 FRESULT res;
 
+const char uartEnter[] = "Ktos wszedl!";
+const char uartLeave[] = "Ktos wyszedl!";
+
 uint8_t * buzzer_sound = (uint8_t*)"A1_";
 uint8_t * erase_sound = (uint8_t*)"B3_";
 
@@ -856,6 +859,67 @@ static uint32_t getTicks(void)
     return msTicks;
 }
 
+int8_t peopleDetecting(float timer, uint8_t firstSensor)
+{
+	float minimalEnterTime = 0.5;
+
+	if (timer > minimalEnterTime)
+	{
+		if (firstSensor == 1)
+		{
+			makeLEDsColor(1);//	LEDY
+			writeUARTMsg(uartEnter);
+			return 1;
+		}
+		else
+		{
+			makeLEDsColor(5);//	LEDY
+			writeUARTMsg(uartLeave);
+			return -1;
+		}
+	}
+	else
+	{
+		return 0;
+	}
+}
+
+uint8_t changeSensorFlag(uint8_t sensorFlag, uint8_t firstSensor, uint8_t sensor)
+{
+	if(sensorFlag == 1)
+	{
+		if (sensor == firstSensor)
+		{
+			if (sensor == 1)
+			{
+				firstSensor = 2;
+			}
+			else
+			{
+				firstSensor = 1;
+			}
+		}
+		return 0;
+	}
+	else
+	{
+		if (sensor == firstSensor)
+		{
+			if (sensor == 1)
+			{
+				firstSensor = 2;
+			}
+			else
+			{
+				firstSensor = 1;
+			}
+		}
+		return 1;
+	}
+}
+
+
+
 //############################//
 //                            //
 //                            //
@@ -880,6 +944,7 @@ int main(void)
 
 	uint8_t entry = 0;
 	uint8_t leave = 0;
+	uint8_t firstSensor = 0;
 
 	uint8_t hour = 0;
 	uint8_t minute = 0;
@@ -900,9 +965,6 @@ int main(void)
 	uint16_t offset = 240;
 	uint8_t len = 0;
 
-	const char uartEnter[] = "Ktos wszedl!";
-	const char uartLeave[] = "Ktos wyszedl!";
-
 
 
 
@@ -913,7 +975,7 @@ int main(void)
 	init_i2c();
 	init_ssp();
 	init_adc();
-	if (init_mmc() == 1) return 1;
+//	if (init_mmc() == 1) return 1;
 	eeprom_init();
 	oled_init();
 	initUART0();
@@ -928,18 +990,18 @@ int main(void)
 	const char msg[] = "Wprowadz date oraz godzine. Jesli chcesz pominac wpisz \'n\'\n\rPodaj dane w kolejnosc:\n\rDzien Miesiac Rok Godzina Minuta Sekunda\n\r";
 	writeUARTMsg(msg);
 
-	day = GetTimeFromUART();
-	if ((int)day != 0)
-	{
-		month = GetTimeFromUART();
-		year = GetTimeFromUART();
-		hour = GetTimeFromUART();
-		minute = GetTimeFromUART();
-		second = GetTimeFromUART();
-	}
-	else{
-		day = 1;
-	}
+//	day = GetTimeFromUART();
+//	if ((int)day != 0)
+//	{
+//		month = GetTimeFromUART();
+//		year = GetTimeFromUART();
+//		hour = GetTimeFromUART();
+//		minute = GetTimeFromUART();
+//		second = GetTimeFromUART();
+//	}
+//	else{
+//		day = 1;
+//	}
 
 	RTC_Init(LPC_RTC);
 
@@ -1044,13 +1106,16 @@ int main(void)
 		signal1 = ((GPIO_ReadValue(0) >> 5) & 0x01);
 		signal2 = ((GPIO_ReadValue(0) >> 8) & 0x01);
 
-
 		if ((int)sw3 != 0) {
 			sw3_pressed = 0;
 		}
 
 		if (((int)sw3 == 0) && ((int)sw3_pressed == 0)) {
 			sw3_pressed = 1;//	BUTTON PRESSED
+			oled_clearScreen(OLED_COLOR_WHITE);
+
+			oled_putString(1, 9, "Timer:", OLED_COLOR_BLACK, OLED_COLOR_WHITE);
+			oled_putString(1, 20, "IleOsob:", OLED_COLOR_BLACK, OLED_COLOR_WHITE);
 
 			liczbaOsob = 0;
 			(void)snprintf(pBuf, 9, "%2d", liczbaOsob);
@@ -1059,51 +1124,99 @@ int main(void)
 
 		}
 
-		if (((int)signal1 == 0) && ((int)signal2 == 1) && (!leave))
+		if ((int)signal2 == 1)
 		{
-			msTicks = 0;
-			entry = 1;
+			if (firstSensor == 0)
+			{
+				msTicks = 0;
+				firstSensor = 1;
+			}
+			entry = changeSensorFlag(entry, firstSensor, 1);
 		}
-		else if (((int)signal1 == 0) && ((int)signal2 == 1) && leave){
-			leave = 0;
-			if (liczbaOsob != 0)
-				liczbaOsob = (int)liczbaOsob - 1;
 
-			(void)snprintf(pBuf, 9, "%2d", liczbaOsob);
-			oled_putString(70, 20, pBuf, OLED_COLOR_BLACK, OLED_COLOR_WHITE);
-			makeLEDsColor(5);//	LEDY
-
-			writeUARTMsg(uartLeave);
-		}
-		else{}
-
-
-		if (((int)signal2 == 0) && ((int)signal1 == 1) && entry)
+		if ((int)signal1 == 1)
 		{
-			entry = 0;
-			s = getTicks();
-			ms = (int)s % 1000;
-			s /= 1000;
-
-			colorRgbDiode(s);//	DIODA
-			makeLEDsColor(1);//	LEDY
-
-			(void)snprintf(buf, 9, "%2d.%3d", s, ms);//	CONVERT MEASURED TIME
-			oled_putString(40, 9, buf, OLED_COLOR_BLACK, OLED_COLOR_WHITE);//	PRINT TIME ON OLED
-
-			if (liczbaOsob < 255)
-				liczbaOsob = (int)liczbaOsob + 1;
-
-			(void)snprintf(pBuf, 9, "%2d", liczbaOsob);
-			oled_putString(70, 20, pBuf, OLED_COLOR_BLACK, OLED_COLOR_WHITE);
-			playSong(buzzer_sound);
-
-			writeUARTMsg(uartEnter);
+			if (firstSensor == 0)
+			{
+				msTicks = 0;
+				firstSensor = 2;
+			}
+			leave = changeSensorFlag(leave, firstSensor, 1);;
 		}
-		else if (((int)signal2 == 0) && ((int)signal1 == 1)){
-			leave = 1;
+
+		if (entry == 1 && leave == 1)
+		{
+			float timer = getTicks() / 1000;
+			if (liczbaOsob < 255 && liczbaOsob >= 0)
+			{
+				liczbaOsob  += peopleDetecting(timer, firstSensor);
+			}
+
+			if (peopleDetecting(timer, firstSensor) != 0)
+			{
+				firstSensor = 0;
+
+				s = getTicks();
+				ms = (int)s % 1000;
+				s /= 1000;
+
+				(void)snprintf(buf, 9, "%2d.%3d", s, ms);//	CONVERT MEASURED TIME
+				oled_putString(40, 9, buf, OLED_COLOR_BLACK, OLED_COLOR_WHITE);//	PRINT TIME ON OLED
+
+				(void)snprintf(pBuf, 9, "%2d", liczbaOsob);
+				oled_putString(70, 20, pBuf, OLED_COLOR_BLACK, OLED_COLOR_WHITE);
+				playSong(buzzer_sound);
+				msTicks = 0;
+
+			}
 		}
-		else{}
+
+//		if (((int)signal1 == 0) && ((int)signal2 == 1) && (!leave))
+//		{
+//			msTicks = 0;
+//			entry = 1;
+//		}
+//		else if (((int)signal1 == 0) && ((int)signal2 == 1) && leave){
+//			leave = 0;
+//			if (liczbaOsob != 0)
+//				liczbaOsob = (int)liczbaOsob - 1;
+//
+//			(void)snprintf(pBuf, 9, "%2d", liczbaOsob);
+//			oled_putString(70, 20, pBuf, OLED_COLOR_BLACK, OLED_COLOR_WHITE);
+//			makeLEDsColor(5);//	LEDY
+//
+//			writeUARTMsg(uartLeave);
+//		}
+//		else{}
+//
+//
+//		if (((int)signal2 == 0) && ((int)signal1 == 1) && entry)
+//		{
+//			entry = 0;
+//			s = getTicks();
+//			ms = (int)s % 1000;
+//			s /= 1000;
+//
+//			colorRgbDiode(s);//	DIODA
+//			makeLEDsColor(1);//	LEDY
+//
+//			(void)snprintf(buf, 9, "%2d.%3d", s, ms);//	CONVERT MEASURED TIME
+//			oled_putString(40, 9, buf, OLED_COLOR_BLACK, OLED_COLOR_WHITE);//	PRINT TIME ON OLED
+//
+//			if (liczbaOsob < 255)
+//				liczbaOsob = (int)liczbaOsob + 1;
+//
+//			(void)snprintf(pBuf, 9, "%2d", liczbaOsob);
+//			oled_putString(70, 20, pBuf, OLED_COLOR_BLACK, OLED_COLOR_WHITE);
+//			playSong(buzzer_sound);
+//
+//			writeUARTMsg(uartEnter);
+//		}
+//		else if (((int)signal2 == 0) && ((int)signal1 == 1)){
+//			msTicks = 0;
+//			leave = 1;
+//		}
+//		else{}
 
 
 		len = eeprom_write(pBuf, offset, EEPROMLen);
