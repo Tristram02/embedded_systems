@@ -130,13 +130,38 @@ static uint32_t getDuration(uint8_t ch);
 static uint32_t getPause(uint8_t ch);
 static void playSong(uint8_t *song);
 void makeLEDsColor(uint32_t time);
-static void colorRgbDiode(uint32_t time);
+static void colorRgbDiode(uint8_t signal1, uint8_t signal2);
 void display_time();
 static void intToString(int value, uint8_t* pBuf, uint32_t len, uint32_t base);
 int arrayToInt(uint8_t arr[]);
 void SysTick_Handler(void);
 static uint32_t getTicks(void);
 int main(void);
+
+
+static void init_uart(void)
+{
+	PINSEL_CFG_Type PinCfg;
+	UART_CFG_Type uartCfg;
+
+	/* Initialize UART3 pin connect */
+	PinCfg.Funcnum = 2;
+	PinCfg.Pinnum = 0;
+	PinCfg.Portnum = 0;
+	PINSEL_ConfigPin(&PinCfg);
+	PinCfg.Pinnum = 1;
+	PINSEL_ConfigPin(&PinCfg);
+
+	uartCfg.Baud_rate = 115200;
+	uartCfg.Databits = UART_DATABIT_8;
+	uartCfg.Parity = UART_PARITY_NONE;
+	uartCfg.Stopbits = UART_STOPBIT_1;
+
+	UART_Init(UART_DEV, &uartCfg);
+
+	UART_TxCmd(UART_DEV, ENABLE);
+
+}
 
 /*!
  *  @brief    inicjazacja bloku UART0
@@ -145,7 +170,7 @@ int main(void);
 void initUART0(void)
 {
 	LPC_PINCON->PINSEL0 |= (1<<4) | (1<<6); //Select TXD0 and RXD0 function for P0.2 & P0.3!
-
+	LPC_SC->PCONP |= 1<<3;
 
 	LPC_UART0->LCR = 3 | DLAB_BIT ; /* 8 bits, no Parity, 1 Stop bit & DLAB set to 1  */
 	LPC_UART0->DLL = 12;
@@ -696,14 +721,13 @@ void makeLEDsColor(uint32_t time)
  *
  */
 
-static void colorRgbDiode(uint32_t time)
+static void colorRgbDiode(uint8_t signal1, uint8_t signal2)
 {
     rgb_init();
 
-    if ((int)time > 3)
+    if (signal1 == 1 || signal2 == 1)
     {
         rgb_setLeds(RGB_RED|RGB_GREEN|0);
-
     }
     else
     {
@@ -884,34 +908,34 @@ int8_t peopleDetecting(float timer, uint8_t firstSensor)
 	}
 }
 
-uint8_t changeSensorFlag(uint8_t sensorFlag, uint8_t firstSensor, uint8_t sensor)
+uint8_t changeSensorFlag(uint8_t sensorFlag, uint8_t* firstSensor, uint8_t sensor)
 {
 	if(sensorFlag == 1)
 	{
-		if (sensor == firstSensor)
+		if (sensor == *firstSensor)
 		{
 			if (sensor == 1)
 			{
-				firstSensor = 2;
+				*firstSensor = 2;
 			}
 			else
 			{
-				firstSensor = 1;
+				*firstSensor = 1;
 			}
 		}
 		return 0;
 	}
 	else
 	{
-		if (sensor == firstSensor)
+		if (sensor == *firstSensor)
 		{
 			if (sensor == 1)
 			{
-				firstSensor = 2;
+				*firstSensor = 2;
 			}
 			else
 			{
-				firstSensor = 1;
+				*firstSensor = 1;
 			}
 		}
 		return 1;
@@ -945,6 +969,7 @@ int main(void)
 	uint8_t entry = 0;
 	uint8_t leave = 0;
 	uint8_t firstSensor = 0;
+	uint8_t* ptrFirstSensor = &firstSensor;
 
 	uint8_t hour = 0;
 	uint8_t minute = 0;
@@ -961,7 +986,7 @@ int main(void)
 	uint32_t delay = 0;
 	uint32_t turnOff = 0;
 
-	uint8_t liczbaOsob = 0;
+	int8_t liczbaOsob = 0;
 	uint16_t offset = 240;
 	uint8_t len = 0;
 
@@ -975,6 +1000,7 @@ int main(void)
 	init_i2c();
 	init_ssp();
 	init_adc();
+	init_uart();
 //	if (init_mmc() == 1) return 1;
 	eeprom_init();
 	oled_init();
@@ -1059,7 +1085,7 @@ int main(void)
 				(void)snprintf(buf_mmc, sizeof(buf_mmc), "%02d:%02d:%02d %02d.%02d.%04dr.", hour, minute, second, day, month, year);
 				save_log(buf_mmc, "log.txt");
 				save_log("\nOdczyt z SD liczby ludzi\n", "log.txt");
-				liczbaOsob = arrayToInt(pBuf) - 1;
+				liczbaOsob = arrayToInt(pBuf);
 			}
 			else {
 				(void)snprintf(buf_mmc, sizeof(buf_mmc), "%02d:%02d:%02d %02d.%02d.%04dr.", hour, minute, second, day, month, year);
@@ -1077,7 +1103,7 @@ int main(void)
 	}
 	else
 	{
-		liczbaOsob = arrayToInt(pBuf) - 1;
+		liczbaOsob = arrayToInt(pBuf);
 		(void)snprintf(buf_mmc, sizeof(buf_mmc), "%02d:%02d:%02d %02d.%02d.%04dr.", hour, minute, second, day, month, year);
 		save_log(buf_mmc, "log.txt");
 		save_log("\nOdczyt z EEPROM liczby ludzi\n", "log.txt");
@@ -1104,7 +1130,9 @@ int main(void)
 		sw3 = ((GPIO_ReadValue(0) >> 4) & 0x01);
 
 		signal1 = ((GPIO_ReadValue(0) >> 5) & 0x01);
-		signal2 = ((GPIO_ReadValue(0) >> 8) & 0x01);
+		signal2 = ((GPIO_ReadValue(0) >> 8) & 0x01);	//Ten blizej wlacznika
+
+		colorRgbDiode(signal1, signal2);
 
 		if ((int)sw3 != 0) {
 			sw3_pressed = 0;
@@ -1126,31 +1154,43 @@ int main(void)
 
 		if ((int)signal2 == 1)
 		{
+			entry = changeSensorFlag(entry, ptrFirstSensor, 1);
 			if (firstSensor == 0)
 			{
 				msTicks = 0;
 				firstSensor = 1;
 			}
-			entry = changeSensorFlag(entry, firstSensor, 1);
 		}
 
 		if ((int)signal1 == 1)
 		{
+			leave = changeSensorFlag(leave, ptrFirstSensor, 2);
 			if (firstSensor == 0)
 			{
 				msTicks = 0;
 				firstSensor = 2;
 			}
-			leave = changeSensorFlag(leave, firstSensor, 1);;
 		}
 
 		if (entry == 1 && leave == 1)
 		{
-			float timer = getTicks() / 1000;
-			if (liczbaOsob < 255 && liczbaOsob >= 0)
+			entry = 0;
+			leave = 0;
+			float timer = getTicks() / 1000.0f;
+
+			liczbaOsob  += peopleDetecting(timer, firstSensor);
+
+			if (liczbaOsob == -1)
 			{
-				liczbaOsob  += peopleDetecting(timer, firstSensor);
+				liczbaOsob = 0;
 			}
+			else if (liczbaOsob == 127)
+			{
+				liczbaOsob = 126;
+			}
+			else
+			{}
+
 
 			if (peopleDetecting(timer, firstSensor) != 0)
 			{
@@ -1171,52 +1211,6 @@ int main(void)
 			}
 		}
 
-//		if (((int)signal1 == 0) && ((int)signal2 == 1) && (!leave))
-//		{
-//			msTicks = 0;
-//			entry = 1;
-//		}
-//		else if (((int)signal1 == 0) && ((int)signal2 == 1) && leave){
-//			leave = 0;
-//			if (liczbaOsob != 0)
-//				liczbaOsob = (int)liczbaOsob - 1;
-//
-//			(void)snprintf(pBuf, 9, "%2d", liczbaOsob);
-//			oled_putString(70, 20, pBuf, OLED_COLOR_BLACK, OLED_COLOR_WHITE);
-//			makeLEDsColor(5);//	LEDY
-//
-//			writeUARTMsg(uartLeave);
-//		}
-//		else{}
-//
-//
-//		if (((int)signal2 == 0) && ((int)signal1 == 1) && entry)
-//		{
-//			entry = 0;
-//			s = getTicks();
-//			ms = (int)s % 1000;
-//			s /= 1000;
-//
-//			colorRgbDiode(s);//	DIODA
-//			makeLEDsColor(1);//	LEDY
-//
-//			(void)snprintf(buf, 9, "%2d.%3d", s, ms);//	CONVERT MEASURED TIME
-//			oled_putString(40, 9, buf, OLED_COLOR_BLACK, OLED_COLOR_WHITE);//	PRINT TIME ON OLED
-//
-//			if (liczbaOsob < 255)
-//				liczbaOsob = (int)liczbaOsob + 1;
-//
-//			(void)snprintf(pBuf, 9, "%2d", liczbaOsob);
-//			oled_putString(70, 20, pBuf, OLED_COLOR_BLACK, OLED_COLOR_WHITE);
-//			playSong(buzzer_sound);
-//
-//			writeUARTMsg(uartEnter);
-//		}
-//		else if (((int)signal2 == 0) && ((int)signal1 == 1)){
-//			msTicks = 0;
-//			leave = 1;
-//		}
-//		else{}
 
 
 		len = eeprom_write(pBuf, offset, EEPROMLen);
