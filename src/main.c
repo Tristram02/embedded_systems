@@ -1,13 +1,3 @@
-/*****************************************************************************
- *   Peripherals such as temp sensor, light sensor, accelerometer,
- *   and trim potentiometer are monitored and values are written to
- *   the OLED display.
- *
- *   Copyright(C) 2010, Embedded Artists AB
- *   All rights reserved.
- *
- ******************************************************************************/
-
 //############################//
 //                            //
 //          INCLUDY           //
@@ -19,11 +9,8 @@
 #include "lpc17xx_i2c.h"
 #include "lpc17xx_gpio.h"
 #include "lpc17xx_ssp.h"
-#include "lpc17xx_adc.h"
-#include "lpc17xx_timer.h"
 
-//	SPEAKER
-#include "lpc17xx_dac.h"
+#include "lpc17xx_timer.h"
 
 // UART
 #include "uart2.h"
@@ -120,7 +107,7 @@ uint16_t GetTimeFromUART();
 void writeUARTMsg(char msg[]);
 static void init_ssp(void);
 static void init_i2c(void);
-static void init_adc(void);
+//static void init_adc(void);
 static int init_mmc(void);
 void save_log(const uint8_t log[], const uint8_t filename[]);
 void init_speaker(void);
@@ -204,7 +191,12 @@ void U0Write(char txData)
 
 char U0Read(void)
 {
-	while(!(LPC_UART0->LSR & RDR)){}; //wait until data arrives in Rx FIFO
+	while(!(LPC_UART0->LSR & RDR)){
+		if (((GPIO_ReadValue(0) >> 4) & 0x01) == 0)
+		{
+			return 'n';
+		}
+	}; //wait until data arrives in Rx FIFO
 	return LPC_UART0->RBR;
 }
 
@@ -356,30 +348,30 @@ static void init_i2c(void)
  *  @brief    Inicjalizacja ADC
  */
 
-static void init_adc(void)
-{
-	PINSEL_CFG_Type PinCfg;
-
-	/*
-	 * Init ADC pin connect
-	 * AD0.5 on P1.31
-	 */
-	PinCfg.Funcnum = 3;
-	PinCfg.OpenDrain = 0;
-	PinCfg.Pinmode = 0;
-	PinCfg.Pinnum = 31;
-	PinCfg.Portnum = 1;
-	PINSEL_ConfigPin(&PinCfg);
-
-	/* Configuration for ADC :
-	 * 	Frequency at 0,2Mhz
-	 *  ADC channel 5, no Interrupt
-	 */
-	ADC_Init(LPC_ADC, 200000);
-	ADC_IntConfig(LPC_ADC,ADC_CHANNEL_5,DISABLE);
-	ADC_ChannelCmd(LPC_ADC,ADC_CHANNEL_5,ENABLE);
-
-}
+//static void init_adc(void)
+//{
+//	PINSEL_CFG_Type PinCfg;
+//
+//	/*
+//	 * Init ADC pin connect
+//	 * AD0.5 on P1.31
+//	 */
+//	PinCfg.Funcnum = 3;
+//	PinCfg.OpenDrain = 0;
+//	PinCfg.Pinmode = 0;
+//	PinCfg.Pinnum = 31;
+//	PinCfg.Portnum = 1;
+//	PINSEL_ConfigPin(&PinCfg);
+//
+//	/* Configuration for ADC :
+//	 * 	Frequency at 0,2Mhz
+//	 *  ADC channel 5, no Interrupt
+//	 */
+//	ADC_Init(LPC_ADC, 200000);
+//	ADC_IntConfig(LPC_ADC,ADC_CHANNEL_5,DISABLE);
+//	ADC_ChannelCmd(LPC_ADC,ADC_CHANNEL_5,ENABLE);
+//
+//}
 
 //############################//
 //          INIT MMC          //
@@ -883,76 +875,53 @@ static uint32_t getTicks(void)
     return msTicks;
 }
 
-int8_t peopleDetecting(float timer, uint8_t firstSensor)
-{
-	float minimalEnterTime = 0.5;
 
-	if (timer > minimalEnterTime)
-	{
-		if (firstSensor == 1)
-		{
-			makeLEDsColor(1);//	LEDY
-			writeUARTMsg(uartEnter);
-			return 1;
-		}
-		else
-		{
-			makeLEDsColor(5);//	LEDY
-			writeUARTMsg(uartLeave);
-			return -1;
-		}
-	}
-	else
-	{
-		return 0;
-	}
-}
+/*!
+ *  @brief	  Wyswietla na ekranie informacje o przejsciu osoby
+ *
+ *  @param walk_time
+ *            Czas przejscia osoby
+ *
+ *  @param liczbaOsob
+ *  		  Ile osob aktualnie znajduje sie w pokoju
+ *
+ */
 
-uint8_t changeSensorFlag(uint8_t sensorFlag, uint8_t* firstSensor, uint8_t sensor)
+void oledInfo(uint16_t walk_time, uint8_t liczbaOsob)
 {
-	if(sensorFlag == 1)
-	{
-		if (sensor == *firstSensor)
-		{
-			if (sensor == 1)
-			{
-				*firstSensor = 2;
-			}
-			else
-			{
-				*firstSensor = 1;
-			}
-		}
-		return 0;
-	}
-	else
-	{
-		if (sensor == *firstSensor)
-		{
-			if (sensor == 1)
-			{
-				*firstSensor = 2;
-			}
-			else
-			{
-				*firstSensor = 1;
-			}
-		}
-		return 1;
-	}
+	uint16_t s = walk_time;
+	uint16_t ms = (int)s % 1000;
+	s /= 1000;
+
+	(void)snprintf(buf, 9, "%2d.%3d", s, ms);//	CONVERT MEASURED TIME
+	oled_putString(40, 9, buf, OLED_COLOR_BLACK, OLED_COLOR_WHITE);//	PRINT TIME ON OLED
+
+	(void)snprintf(pBuf, 9, "%2d", liczbaOsob);
+	oled_putString(70, 20, pBuf, OLED_COLOR_BLACK, OLED_COLOR_WHITE);
+
 }
 
 
+/*!
+ *  @brief    Zeruje tablice
+ *
+ *  @param arr
+ *            Tablica do wyzerowania
+ *
+ *
+ */
 
-//############################//
-//                            //
-//                            //
-//            MAIN            //
-//                            //
-//                            //
-//############################//
+void clearArray(uint8_t arr[])
+{
+	for (int i = 0; i < 4; i++)
+	{
+		arr[i] = 0;
+	}
+}
 
-
+/*!
+ *  @brief    Glowna funkcja programu
+ */
 
 int main(void)
 {
@@ -966,11 +935,6 @@ int main(void)
 	uint8_t signal1 = 0;
 	uint8_t signal2 = 0;
 
-	uint8_t entry = 0;
-	uint8_t leave = 0;
-	uint8_t firstSensor = 0;
-	uint8_t* ptrFirstSensor = &firstSensor;
-
 	uint8_t hour = 0;
 	uint8_t minute = 0;
 	uint8_t second = 0;
@@ -978,17 +942,18 @@ int main(void)
 	uint8_t month = 1;
 	uint16_t year = 1900;
 
-	uint32_t s;
-	uint32_t ms;
-
-	uint32_t cnt = 0;
-	uint32_t sampleRate = 0;
-	uint32_t delay = 0;
-	uint32_t turnOff = 0;
-
-	int8_t liczbaOsob = 0;
+	uint8_t liczbaOsob = 0;
 	uint16_t offset = 240;
 	uint8_t len = 0;
+
+	uint16_t walk_time;
+	uint8_t signal_num[10] = {0};
+	uint16_t signal_time[10] = {0};
+	uint8_t index = 0;
+	uint8_t signal2_saved;
+	uint8_t signal1_saved;
+	uint16_t timestamp;
+	uint16_t MIN_ENTRY_TIME = 300;
 
 
 
@@ -999,15 +964,24 @@ int main(void)
 
 	init_i2c();
 	init_ssp();
-	init_adc();
+//	init_adc();
 	init_uart();
-//	if (init_mmc() == 1) return 1;
-	eeprom_init();
 	oled_init();
+	eeprom_init();
 	initUART0();
 	init_speaker();
 
+	//############################//
+	//            OLED            //
+	//############################//
 
+
+	oled_clearScreen(OLED_COLOR_WHITE);
+
+	oled_putString(1, 9, "Timer:", OLED_COLOR_BLACK, OLED_COLOR_WHITE);
+	oled_putString(1, 20, "IleOsob:", OLED_COLOR_BLACK, OLED_COLOR_WHITE);
+
+	init_mmc();
 
 	//############################//
 	//      REAL TIME CLOCK       //
@@ -1016,18 +990,18 @@ int main(void)
 	const char msg[] = "Wprowadz date oraz godzine. Jesli chcesz pominac wpisz \'n\'\n\rPodaj dane w kolejnosc:\n\rDzien Miesiac Rok Godzina Minuta Sekunda\n\r";
 	writeUARTMsg(msg);
 
-//	day = GetTimeFromUART();
-//	if ((int)day != 0)
-//	{
-//		month = GetTimeFromUART();
-//		year = GetTimeFromUART();
-//		hour = GetTimeFromUART();
-//		minute = GetTimeFromUART();
-//		second = GetTimeFromUART();
-//	}
-//	else{
-//		day = 1;
-//	}
+	day = GetTimeFromUART();
+	if ((int)day != 0)
+	{
+		month = GetTimeFromUART();
+		year = GetTimeFromUART();
+		hour = GetTimeFromUART();
+		minute = GetTimeFromUART();
+		second = GetTimeFromUART();
+	}
+	else{
+		day = 1;
+	}
 
 	RTC_Init(LPC_RTC);
 
@@ -1050,15 +1024,6 @@ int main(void)
 		while(1){};  // Capture error
 	}
 
-	//############################//
-	//            OLED            //
-	//############################//
-
-
-	oled_clearScreen(OLED_COLOR_WHITE);
-
-	oled_putString(1, 9, "Timer:", OLED_COLOR_BLACK, OLED_COLOR_WHITE);
-	oled_putString(1, 20, "IleOsob:", OLED_COLOR_BLACK, OLED_COLOR_WHITE);
 
 	//############################//
 	//            MMC             //
@@ -1148,71 +1113,132 @@ int main(void)
 			liczbaOsob = 0;
 			(void)snprintf(pBuf, 9, "%2d", liczbaOsob);
 			oled_putString(70, 20, pBuf, OLED_COLOR_BLACK, OLED_COLOR_WHITE);
-			playSong(erase_sound);
+			(void)playSong(erase_sound);
+			clearArray(signal_num);
 
 		}
 
-		if ((int)signal2 == 1)
+		// 0 jak nic
+		// 1 jak jest przerywam
+
+
+		timestamp = getTicks();
+
+
+		if((int)signal2 == 1 && ((int)signal2_saved != 1))
 		{
-			entry = changeSensorFlag(entry, ptrFirstSensor, 1);
-			if (firstSensor == 0)
-			{
-				msTicks = 0;
-				firstSensor = 1;
-			}
+			signal_num[index] = 2;
+			signal_time[index] = timestamp;
+			index += 1;
+			signal2_saved = 1;
 		}
 
-		if ((int)signal1 == 1)
+		if((int)signal1 == 1 && ((int)signal1_saved != 1))
 		{
-			leave = changeSensorFlag(leave, ptrFirstSensor, 2);
-			if (firstSensor == 0)
-			{
-				msTicks = 0;
-				firstSensor = 2;
-			}
+			signal_num[index] = 1;
+			signal_time[index] = timestamp;
+			index += 1;
+			signal1_saved = 1;
 		}
 
-		if (entry == 1 && leave == 1)
+		if(index > 4){
+			index = 0;
+		}
+
+		if((int)signal2 == 0)
 		{
-			entry = 0;
-			leave = 0;
-			float timer = getTicks() / 1000.0f;
+			signal2_saved = 0;
+		}
 
-			liczbaOsob  += peopleDetecting(timer, firstSensor);
+		if((int)signal1 == 0)
+		{
+			signal1_saved = 0;
+		}
 
-			if (liczbaOsob == -1)
+
+		if((int)index == 2) // kiedy mamy zapisane 2 synglay
+		{
+			// kiedy te 2 sygnaly za z roznych tych i maja czas wiekszy od...
+			// to uznajemy to jako normalne wejscie i wywalamy te rzeczy z tablic (chyba mozna nadpisac)
+			if(signal_num[0] != signal_num[1])
 			{
-				liczbaOsob = 0;
+				if(signal_time[1] - signal_time[0] > MIN_ENTRY_TIME) // NORMALNE PRZEJSCIE
+				{
+					walk_time = signal_time[1] - signal_time[0];
+					if(signal_num[0] == 2)
+					{
+						if (liczbaOsob != 255)
+						{
+							liczbaOsob += 1;
+						}
+						(void)playSong(buzzer_sound);
+						(void)oledInfo(walk_time, liczbaOsob);
+					}
+					else
+					{
+						if (liczbaOsob != 0)
+						{
+							liczbaOsob -= 1;
+						}
+						(void)playSong(buzzer_sound);
+						(void)oledInfo(walk_time, liczbaOsob);
+					}
+					index = 0;
+					msTicks = 0;
+					(void)clearArray(signal_num);
+				}
+				else // ENTRY TIME ZA MALY, PRAWDOPODOBNIE DWIE OSOBY WESZLY NA RAZ Z ROZNYCH STRON
+				{
+					// CZEKAMY NA TO CO ZROBIA
+				}
 			}
-			else if (liczbaOsob == 127)
+			else // DWA SYGNALY Z TEGO SAMEGO LASERA
 			{
-				liczbaOsob = 126;
+				index = 0; // PO PROSTU JE IGNORUJEMY
+				(void)clearArray(signal_num);
 			}
-			else
-			{}
-
-
-			if (peopleDetecting(timer, firstSensor) != 0)
+		}
+		if((int)index == 4) // kiedy mamy zapisane wiecej niz 2 sygnaly (4)
+		// oznacza to ze weszly 2 osoby na raz z roznych kierunkow w roznym czasie (trollujA)
+		{
+			if(signal_num[2] == signal_num[3]) // jesli dwa nastepne sygnaly sa te same
 			{
-				firstSensor = 0;
-
-				s = getTicks();
-				ms = (int)s % 1000;
-				s /= 1000;
-
-				(void)snprintf(buf, 9, "%2d.%3d", s, ms);//	CONVERT MEASURED TIME
-				oled_putString(40, 9, buf, OLED_COLOR_BLACK, OLED_COLOR_WHITE);//	PRINT TIME ON OLED
-
-				(void)snprintf(pBuf, 9, "%2d", liczbaOsob);
-				oled_putString(70, 20, pBuf, OLED_COLOR_BLACK, OLED_COLOR_WHITE);
-				playSong(buzzer_sound);
+				walk_time = signal_time[3] - signal_time[0];
+				// to smieszne przepuszczenie
+				if((int)signal_num[3] == 2) // jesli ostatnim sygnalem jest 2 to se wychodzimmy
+				{
+					if ((int)liczbaOsob != 0)
+					{
+						liczbaOsob -= 1;
+					}
+					(void)playSong(buzzer_sound);
+					(void)oledInfo(walk_time, liczbaOsob);
+				}
+				else
+				{
+					if ((int)liczbaOsob != 255)
+					{
+						liczbaOsob += 1;
+					}
+					(void)playSong(buzzer_sound);
+					(void)oledInfo(walk_time, liczbaOsob);
+				}
+				index = 0;
 				msTicks = 0;
-
+				(void)clearArray(signal_num);
+			}
+			else // jesli sygnaly sa rozne, oznacza to ze osoby strollowaly mega i se weszly i wyszly
+			{
+				index = 0;
+				(void)clearArray(signal_num);
 			}
 		}
 
 
+		(void)snprintf(pBuf, 9, "%d.%d.%d.%d", signal_num[0], signal_num[1], signal_num[2], signal_num[3]);
+		oled_putString(10, 50, pBuf, OLED_COLOR_BLACK, OLED_COLOR_WHITE);
 
+		(void)snprintf(pBuf, 9, "%2d", liczbaOsob);
 		len = eeprom_write(pBuf, offset, EEPROMLen);
 		if ((int)len != (int)EEPROMLen){
 			(void)snprintf(buf_mmc, sizeof(buf_mmc), "%02d:%02d:%02d %02d.%02d.%04dr.", hour, minute, second, day, month, year);
