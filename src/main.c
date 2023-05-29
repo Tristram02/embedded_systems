@@ -9,7 +9,6 @@
 #include "lpc17xx_i2c.h"
 #include "lpc17xx_gpio.h"
 #include "lpc17xx_ssp.h"
-
 #include "lpc17xx_timer.h"
 
 // UART
@@ -53,14 +52,14 @@
 //
 #define RDR			((unsigned int)1<<0)
 #define THRE		((unsigned int)1<<5)
-#define	MULVAL		15
-#define DIVADDVAL	2
+#define	MULVAL		15u
+#define DIVADDVAL	2u
 #define Ux_FIFO_EN	((unsigned int)1<<0)
 #define Rx_FIFO_RST	((unsigned int)1<<1)
 #define Tx_FIFO_RST ((unsigned int)1<<2)
 #define DLAB_BIT	((unsigned int)1<<7)
-#define LINE_FEED	0x0A
-#define ENTER	0x0D
+#define LINE_FEED	0x0Au
+#define ENTER	0x0Du
 
 
 //############################//
@@ -76,21 +75,14 @@ static uint32_t msTicks = 0;
 static uint8_t buf[100]; //	Bufor do przechowania czasu wejscia
 static uint8_t pBuf[EEPROMLen]; //	Bufor do przechowania liczby ludzi
 
-LPC_RTC_TypeDef *RTCx = (LPC_RTC_TypeDef *) LPC_RTC_BASE;
+static LPC_RTC_TypeDef *RTCx = (LPC_RTC_TypeDef *) LPC_RTC_BASE;
 
 
 static uint8_t buf_mmc[22]; //21 znaki alarmu + 1 znak LF
-FIL *fp;
-UINT bw = 0;
-UINT br = 0;
-DIR dir;
-FRESULT res;
+static FIL *fp;
 
-const char uartEnter[] = "Ktos wszedl!";
-const char uartLeave[] = "Ktos wyszedl!";
-
-uint8_t * buzzer_sound = (uint8_t*)"A1_";
-uint8_t * erase_sound = (uint8_t*)"B3_";
+static const char uartEnter[] = "Ktos wszedl!";
+static const char uartLeave[] = "Ktos wyszedl!";
 
 
 
@@ -103,11 +95,10 @@ static void init_uart(void);
 void initUART0(void);
 void U0Write(char txData);
 char U0Read(void);
-uint16_t GetTimeFromUART();
+uint16_t GetTimeFromUART(void);
 void writeUARTMsg(char msg[]);
 static void init_ssp(void);
 static void init_i2c(void);
-//static void init_adc(void);
 static int init_mmc(void);
 void save_log(const uint8_t log[], const uint8_t filename[]);
 void init_speaker(void);
@@ -115,14 +106,16 @@ static void playNote(uint32_t note, uint32_t durationMs);
 static uint32_t getNote(uint8_t ch);
 static uint32_t getDuration(uint8_t ch);
 static uint32_t getPause(uint8_t ch);
-static void playSong(uint8_t *song);
-void makeLEDsColor(uint32_t time);
+static void playSong(const uint8_t *song);
+void makeLEDsColor(uint32_t status);
 static void colorRgbDiode(uint8_t signal1, uint8_t signal2);
-void display_time();
+void display_time(void);
 static void intToString(int value, uint8_t* pBuf, uint32_t len, uint32_t base);
 int arrayToInt(uint8_t arr[]);
 void SysTick_Handler(void);
 static uint32_t getTicks(void);
+void oledInfo(uint16_t walk_time, uint8_t liczbaOsob);
+void clearArray(uint8_t arr[]);
 int main(void);
 
 
@@ -156,15 +149,15 @@ static void init_uart(void)
 
 void initUART0(void)
 {
-	LPC_PINCON->PINSEL0 |= (1<<4) | (1<<6); //Select TXD0 and RXD0 function for P0.2 & P0.3!
-	LPC_SC->PCONP |= 1<<3;
+	LPC_PINCON->PINSEL0 |= (1u<<4u) | (1u<<6u); //Select TXD0 and RXD0 function for P0.2 & P0.3!
+	LPC_SC->PCONP |= 1u<<3u;
 
 	LPC_UART0->LCR = 3 | DLAB_BIT ; /* 8 bits, no Parity, 1 Stop bit & DLAB set to 1  */
 	LPC_UART0->DLL = 12;
 	LPC_UART0->DLM = 0;
 
 	LPC_UART0->FCR |= Ux_FIFO_EN | Rx_FIFO_RST | Tx_FIFO_RST;
-	LPC_UART0->FDR = (MULVAL<<4) | DIVADDVAL; /* MULVAL=15(bits - 7:4) , DIVADDVAL=2(bits - 3:0)  */
+	LPC_UART0->FDR = (MULVAL<<4u) | DIVADDVAL; /* MULVAL=15(bits - 7:4) , DIVADDVAL=2(bits - 3:0)  */
 	LPC_UART0->LCR &= ~(DLAB_BIT);
 }
 
@@ -210,7 +203,7 @@ char U0Read(void)
  *            wartosc zwracana moze przekraczacz maksymalne wartosci RTC
  */
 
-uint16_t GetTimeFromUART()
+uint16_t GetTimeFromUART(void)
 {
 	uint16_t data = 0;
 	while (1)
@@ -341,39 +334,6 @@ static void init_i2c(void)
 }
 
 //############################//
-//          INIT ADC          //
-//############################//
-
-/*!
- *  @brief    Inicjalizacja ADC
- */
-
-//static void init_adc(void)
-//{
-//	PINSEL_CFG_Type PinCfg;
-//
-//	/*
-//	 * Init ADC pin connect
-//	 * AD0.5 on P1.31
-//	 */
-//	PinCfg.Funcnum = 3;
-//	PinCfg.OpenDrain = 0;
-//	PinCfg.Pinmode = 0;
-//	PinCfg.Pinnum = 31;
-//	PinCfg.Portnum = 1;
-//	PINSEL_ConfigPin(&PinCfg);
-//
-//	/* Configuration for ADC :
-//	 * 	Frequency at 0,2Mhz
-//	 *  ADC channel 5, no Interrupt
-//	 */
-//	ADC_Init(LPC_ADC, 200000);
-//	ADC_IntConfig(LPC_ADC,ADC_CHANNEL_5,DISABLE);
-//	ADC_ChannelCmd(LPC_ADC,ADC_CHANNEL_5,ENABLE);
-//
-//}
-
-//############################//
 //          INIT MMC          //
 //############################//
 
@@ -384,18 +344,18 @@ static void init_i2c(void)
 
 static int init_mmc(void)
 {
-	static FATFS Fatfs[1];
-	res = f_mount(&Fatfs[0],"", 0);
+	DIR dir;
+	FATFS Fatfs[1];
+	FRESULT res = f_mount(&Fatfs[0],"", 0);
 	if (res != FR_OK) {
-		int i;
-		i = sprintf(buf_mmc, "Failed to mount 0: %d \r\n", res);
+		(void)sprintf(buf_mmc, sizeof(buf_mmc), "Failed to mount 0: %d \r\n", res);
 		oled_putString(1,40, buf_mmc, OLED_COLOR_BLACK, OLED_COLOR_WHITE);
 		return 1;
 	}
 
 	res = f_opendir(&dir, "/");
 	if (res != FR_OK) {
-		(void)sprintf(buf_mmc, "Failed to open /: %d \r\n", res);
+		(void)sprintf(buf_mmc, sizeof(buf_mmc), "Failed to open /: %d \r\n", res);
 		oled_putString(1,40, buf_mmc, OLED_COLOR_BLACK, OLED_COLOR_WHITE);
 		return 1;
 	}
@@ -413,6 +373,7 @@ static int init_mmc(void)
 
 void save_log(const uint8_t log[], const uint8_t filename[])
 {
+	UINT bw = 0;
 	FRESULT a = f_open(&fp, filename, FA_OPEN_APPEND | FA_WRITE);
 		if(a == FR_OK) {
 			if(f_write(&fp, log, strlen(log), &bw) == FR_OK) {
@@ -435,23 +396,19 @@ void save_log(const uint8_t log[], const uint8_t filename[])
 
 void init_speaker(void)
 {
-	GPIO_SetDir(2, 1<<0, 1);
-	GPIO_SetDir(2, 1<<1, 1);
+	GPIO_SetDir(2, 1u<<0u, 1);
+	GPIO_SetDir(2, 1u<<1u, 1);
 
-	GPIO_SetDir(0, 1<<27, 1);
-	GPIO_SetDir(0, 1<<28, 1);
-	GPIO_SetDir(2, 1<<13, 1);
-	GPIO_SetDir(0, 1<<26, 1);
+	GPIO_SetDir(0, 1u<<27u, 1);
+	GPIO_SetDir(0, 1u<<28u, 1);
+	GPIO_SetDir(2, 1u<<13u, 1);
+	GPIO_SetDir(0, 1u<<26u, 1);
 
-	GPIO_ClearValue(0, 1<<27); //LM4811-clk
-	GPIO_ClearValue(0, 1<<28); //LM4811-up/dn
-	GPIO_ClearValue(2, 1<<13); //LM4811-shutdn
+	GPIO_ClearValue(0, 1u<<27u); //LM4811-clk
+	GPIO_ClearValue(0, 1u<<28u); //LM4811-up/dn
+	GPIO_ClearValue(2, 1u<<13u); //LM4811-shutdn
 }
 
-
-//############################//
-//        PLAY MELODY         //
-//############################//
 
 //############################//
 //         PLAY NOTE          //
@@ -581,7 +538,7 @@ static uint32_t getPause(uint8_t ch)
  *
  */
 
-static void playSong(uint8_t *song)
+static void playSong(const uint8_t *song)
 {
     uint32_t note = 0;
     uint32_t dur  = 0;
@@ -627,78 +584,78 @@ static void playSong(uint8_t *song)
 /*!
  *  @brief    Tworzy sekwencje zapalania sie ledow w zaleznosci od parametru
  *
- *  @param time
+ *  @param status
  *             mowi o tym czy uzytkownik wszedl czy wyszedl z pomieszczenia
  *
  */
 
-void makeLEDsColor(uint32_t time) 
+void makeLEDsColor(uint32_t status) 
 {
 	uint16_t ledOn = 0;
-	    uint32_t count = 0;
-	    uint32_t delay = 40;
+	uint32_t count = 0;
+	uint32_t delay = 40;
 
-		PINSEL_CFG_Type PinCfg;
+	PINSEL_CFG_Type PinCfg;
 
-		/* Initialize I2C2 pin connect */
-		PinCfg.Funcnum = 2;
-		PinCfg.Pinnum = 10;
-		PinCfg.Portnum = 0;
-		PINSEL_ConfigPin(&PinCfg);
-		PinCfg.Pinnum = 11;
-		PINSEL_ConfigPin(&PinCfg);
+	/* Initialize I2C2 pin connect */
+	PinCfg.Funcnum = 2;
+	PinCfg.Pinnum = 10;
+	PinCfg.Portnum = 0;
+	PINSEL_ConfigPin(&PinCfg);
+	PinCfg.Pinnum = 11;
+	PINSEL_ConfigPin(&PinCfg);
 
-		// Initialize I2C peripheral
-		I2C_Init(LPC_I2C2, 100000);
+	// Initialize I2C peripheral
+	I2C_Init(LPC_I2C2, 100000);
 
-		/* Enable I2C1 operation */
-		I2C_Cmd(LPC_I2C2, ENABLE);
+	/* Enable I2C1 operation */
+	I2C_Cmd(LPC_I2C2, ENABLE);
 
-		pca9532_init();
+	pca9532_init();
 
-	    if((int)time > 3){
-	         for(int i=0; i<50; i++) {
-	            if ((int)count < 8){
-	                ledOn |= ((unsigned int)1 << count);
-				}
+	if((int)status == 0){
+		for(int i=0; i<50; i++) {
+			if ((int)count < 8){
+				ledOn = uint16_t(ledOn | ((unsigned int)1 << count));
+			}
 
-	            pca9532_setLeds(ledOn, 0);
-
-
-	            if ((int)count >= 7){
-	                count = 0;
-
-	                pca9532_setLeds(0, 0xffff);
-	                break;
-	            }
-	            count++;
+			pca9532_setLeds(ledOn, 0);
 
 
-	            Timer0_Wait(delay);
-	    }
-	    }
-	    else{
-	        count = 8;
-	         for(int i=0; i<50; i++) {
-	            if ((int)count < 16 ){
-	                ledOn |= ((unsigned int)1 << count);
-				}
+			if ((int)count >= 7){
+				count = 0;
 
-	            pca9532_setLeds(ledOn, 0);
+				pca9532_setLeds(0, 0xffff);
+				break;
+			}
+			count++;
 
 
-	            if ((int)count >= 16 ){
-	                count = 7;
+			Timer0_Wait(delay);
+		}
+	}
+	else{
+		count = 8;
+			for(int i=0; i<50; i++) {
+			if ((int)count < 16 ){
+				ledOn = uint16_t(ledOn | ((unsigned int)1 << count));
+			}
 
-	                pca9532_setLeds(0, 0xffff);
-	                break;
-	            }
-	            count++;
+			pca9532_setLeds(ledOn, 0);
 
 
-	            Timer0_Wait(delay);
-	    }
-	    }
+			if ((int)count >= 16 ){
+				count = 7;
+
+				pca9532_setLeds(0, 0xffff);
+				break;
+			}
+			count++;
+
+
+			Timer0_Wait(delay);
+	}
+	}
 
 }
 
@@ -717,7 +674,7 @@ static void colorRgbDiode(uint8_t signal1, uint8_t signal2)
 {
     rgb_init();
 
-    if (signal1 == 1 || signal2 == 1)
+    if ((int)signal1 == 1 || (int)signal2 == 1)
     {
         rgb_setLeds(RGB_RED|RGB_GREEN|0);
     }
@@ -740,7 +697,7 @@ static void colorRgbDiode(uint8_t signal1, uint8_t signal2)
  *
  */
 
-void display_time() 
+void display_time(void) 
 {
     uint32_t hour;
 	uint32_t minute;
@@ -890,7 +847,7 @@ static uint32_t getTicks(void)
 void oledInfo(uint16_t walk_time, uint8_t liczbaOsob)
 {
 	uint16_t s = walk_time;
-	uint16_t ms = (int)s % 1000;
+	uint16_t ms = uint16_t((int)s % 1000);
 	s /= 1000;
 
 	(void)snprintf(buf, 9, "%2d.%3d", s, ms);//	CONVERT MEASURED TIME
@@ -945,18 +902,19 @@ int main(void)
 	uint8_t liczbaOsob = 0;
 	uint16_t offset = 240;
 	uint8_t len = 0;
+	UINT br = 0;
 
 	uint16_t walk_time;
 	uint8_t signal_num[10] = {0};
 	uint16_t signal_time[10] = {0};
 	uint8_t index = 0;
-	uint8_t signal2_saved;
-	uint8_t signal1_saved;
+	uint8_t signal2_saved = 0;
+	uint8_t signal1_saved = 0;
 	uint16_t timestamp;
 	uint16_t MIN_ENTRY_TIME = 300;
 
-
-
+	const uint8_t * erase_sound = (const uint8_t*)"B3_";
+	const uint8_t * buzzer_sound = (const uint8_t*)"A1_";
 
 	//############################//
 	//           INITS            //
@@ -964,7 +922,6 @@ int main(void)
 
 	init_i2c();
 	init_ssp();
-//	init_adc();
 	init_uart();
 	oled_init();
 	eeprom_init();
@@ -1129,7 +1086,7 @@ int main(void)
 		{
 			signal_num[index] = 2;
 			signal_time[index] = timestamp;
-			index += 1;
+			index = uint8_t((int)index + 1);
 			signal2_saved = 1;
 		}
 
@@ -1137,11 +1094,11 @@ int main(void)
 		{
 			signal_num[index] = 1;
 			signal_time[index] = timestamp;
-			index += 1;
+			index = uint8_t((int)index + 1);
 			signal1_saved = 1;
 		}
 
-		if(index > 4){
+		if((int)index > 4){
 			index = 0;
 		}
 
@@ -1165,23 +1122,25 @@ int main(void)
 				if(signal_time[1] - signal_time[0] > MIN_ENTRY_TIME) // NORMALNE PRZEJSCIE
 				{
 					walk_time = signal_time[1] - signal_time[0];
-					if(signal_num[0] == 2)
+					if((int)signal_num[0] == 2)
 					{
-						if (liczbaOsob != 255)
+						if ((int)liczbaOsob != 255)
 						{
-							liczbaOsob += 1;
+							liczbaOsob = uint8_t((int)liczbaOsob + 1);
 						}
 						(void)playSong(buzzer_sound);
 						(void)oledInfo(walk_time, liczbaOsob);
+						(void)makeLEDsColor(1); 
 					}
 					else
 					{
-						if (liczbaOsob != 0)
+						if ((int)liczbaOsob != 0)
 						{
-							liczbaOsob -= 1;
+							liczbaOsob = uint8_t((int)liczbaOsob - 1);
 						}
 						(void)playSong(buzzer_sound);
 						(void)oledInfo(walk_time, liczbaOsob);
+						(void)makeLEDsColor(0);
 					}
 					index = 0;
 					msTicks = 0;
@@ -1209,19 +1168,21 @@ int main(void)
 				{
 					if ((int)liczbaOsob != 0)
 					{
-						liczbaOsob -= 1;
+						liczbaOsob = uint8_t((int)liczbaOsob - 1);
 					}
 					(void)playSong(buzzer_sound);
 					(void)oledInfo(walk_time, liczbaOsob);
+					(void)makeLEDsColor(0);
 				}
 				else
 				{
 					if ((int)liczbaOsob != 255)
 					{
-						liczbaOsob += 1;
+						liczbaOsob = uint8_t((int)liczbaOsob + 1);
 					}
 					(void)playSong(buzzer_sound);
 					(void)oledInfo(walk_time, liczbaOsob);
+					(void)makeLEDsColor(1);
 				}
 				index = 0;
 				msTicks = 0;
