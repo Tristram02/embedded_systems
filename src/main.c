@@ -184,13 +184,19 @@ void U0Write(char txData)
 
 char U0Read(void)
 {
+	char result = 'a';
 	while(!(LPC_UART0->LSR & RDR)){
 		if (((GPIO_ReadValue(0) >> 4) & 0x01) == 0)
 		{
-			return 'n';
+			result = 'n';
+			break;
 		}
 	}; //wait until data arrives in Rx FIFO
-	return LPC_UART0->RBR;
+	if (result != 'n')
+	{
+		result = LPC_UART0->RBR;
+	}
+	return result;
 }
 
 
@@ -206,6 +212,8 @@ char U0Read(void)
 uint16_t GetTimeFromUART(void)
 {
 	uint16_t data = 0;
+	uint16_t result = 0;
+	uint8_t flag = 0;
 	while (1)
 	{
 		char input = U0Read(); //Read Data from Rx
@@ -214,10 +222,12 @@ uint16_t GetTimeFromUART(void)
 			//Send NEW Line Character(s) i.e. "\n"
 			U0Write(ENTER); //Comment this for Linux or MacOS
 			U0Write(LINE_FEED); //Windows uses CR+LF for newline.
+			flag = 0;
 		}
 		else if((int)input == (int)'n')
 		{
-			return 0;
+			result = 0;
+			flag = 1;
 		}
 		else if(input == ' ')
 		{
@@ -226,16 +236,28 @@ uint16_t GetTimeFromUART(void)
 			{
 				const char msg[] = "Prawdopodobnie wybrales zle dane! Ustawiam je jako 1\n\r";
 				writeUARTMsg(msg);
-				return 1;
+				flag = 1;
+				result = 1;
 			}
-			return data;
+			else
+			{
+				result = data;
+				flag = 1;
+			}
 		}
 		else
 		{
 			U0Write(input); //Tx Read Data back
 			data = (uint16_t)data * (uint16_t)10 + ((uint16_t)input - (uint16_t)'0');
+			flag = 0;
+		}
+
+		if ((int)flag == 1)
+		{
+			break;
 		}
 	}
+	return result;
 }
 
 /*!
@@ -347,19 +369,20 @@ static int init_mmc(void)
 	DIR dir;
 	FATFS Fatfs[1];
 	FRESULT res = f_mount(&Fatfs[0],"", 0);
+	uint8_t result = 0;
 	if (res != FR_OK) {
 		(void)sprintf(buf_mmc, sizeof(buf_mmc), "Failed to mount 0: %d \r\n", res);
 		oled_putString(1,40, buf_mmc, OLED_COLOR_BLACK, OLED_COLOR_WHITE);
-		return 1;
+		result = 1;
 	}
 
 	res = f_opendir(&dir, "/");
 	if (res != FR_OK) {
 		(void)sprintf(buf_mmc, sizeof(buf_mmc), "Failed to open /: %d \r\n", res);
 		oled_putString(1,40, buf_mmc, OLED_COLOR_BLACK, OLED_COLOR_WHITE);
-		return 1;
+		result = 1;
 	}
-	return 0;
+	return result;
 }
 
 /*!
@@ -399,14 +422,14 @@ void init_speaker(void)
 	GPIO_SetDir(2, 1u<<0u, 1);
 	GPIO_SetDir(2, 1u<<1u, 1);
 
-	GPIO_SetDir(0, 1u<<27u, 1);
-	GPIO_SetDir(0, 1u<<28u, 1);
-	GPIO_SetDir(2, 1u<<13u, 1);
-	GPIO_SetDir(0, 1u<<26u, 1);
+	GPIO_SetDir(0, 1UL<<27u, 1);
+	GPIO_SetDir(0, 1UL<<28u, 1);
+	GPIO_SetDir(2, 1UL<<13u, 1);
+	GPIO_SetDir(0, 1UL<<26u, 1);
 
-	GPIO_ClearValue(0, 1u<<27u); //LM4811-clk
-	GPIO_ClearValue(0, 1u<<28u); //LM4811-up/dn
-	GPIO_ClearValue(2, 1u<<13u); //LM4811-shutdn
+	GPIO_ClearValue(0, 1UL<<27u); //LM4811-clk
+	GPIO_ClearValue(0, 1UL<<28u); //LM4811-up/dn
+	GPIO_ClearValue(2, 1UL<<13u); //LM4811-shutdn
 }
 
 
@@ -458,6 +481,7 @@ static void playNote(uint32_t note, uint32_t durationMs)
 
 static uint32_t getNote(uint8_t ch)
 {
+	uint32_t result = 0;
 	static uint32_t notes[] = {
         2272, // A - 440 Hz
         2024, // B - 494 Hz
@@ -473,15 +497,15 @@ static uint32_t getNote(uint8_t ch)
         1517, // e - 659 Hz
         1432, // f - 698 Hz
         1275, // g - 784 Hz
-};
+	};
 
     if ((int)ch >= (int)'A' && (int)ch <= (int)'G')
-        return notes[(int)ch - (int)'A'];
+        result = notes[(int)ch - (int)'A'];
 
     if ((int)ch >= (int)'a' && (int)ch <= (int)'g')
-        return notes[(int)ch - (int)'a' + 7];
+        result = notes[(int)ch - (int)'a' + 7];
 
-    return 0;
+    return result;
 }
 
 /*!
@@ -497,12 +521,11 @@ static uint32_t getNote(uint8_t ch)
 
 static uint32_t getDuration(uint8_t ch)
 {
+	uint32_t result = ((int)ch - (int)'0') * 200;
     if ((int)ch < (int)'0' || (int)ch > (int)'9')
-        return 400;
+        result = 400;
 
-    /* number of ms */
-
-    return ((int)ch - (int)'0') * 200;
+    return result;
 }
 
 /*!
@@ -517,18 +540,20 @@ static uint32_t getDuration(uint8_t ch)
 
 static uint32_t getPause(uint8_t ch)
 {
+	uint32_t result = 0;
     switch (ch) {
         case '+':
-            return 0;
+            result = 0;
         case ',':
-            return 5;
+            result = 5;
         case '.':
-            return 20;
+            result = 20;
         case '_':
-            return 30;
+            result = 30;
         default:
-            return 5;
+            result = 5;
     }
+	return result;
 }
 
 /*!
@@ -543,6 +568,7 @@ static void playSong(const uint8_t *song)
     uint32_t note = 0;
     uint32_t dur  = 0;
     uint32_t pause = 0;
+	uint8_t flag = 0;
 
     /*
      * A song is a collection of tones where each tone is
@@ -552,15 +578,29 @@ static void playSong(const uint8_t *song)
      */
 
     while(*song != '\0') {
-        note = getNote(*song++);
+        note = getNote(*song);
+		song++;
         if (*song == '\0'){
-            break;
+            flag = 1;
 		}
-        dur  = getDuration(*song++);
+		else
+		{
+			dur  = getDuration(*song);
+			song++;
+		}
         if (*song == '\0'){
-            break;
+            flag = 1;
 		}
-        pause = getPause(*song++);
+		else
+		{
+			pause = getPause(*song);
+			song++;
+		}
+
+		if ((int)flag == 1)
+		{
+			break;
+		}
 
         playNote(note, dur);
         //delay32Ms(0, pause);
@@ -674,7 +714,7 @@ static void colorRgbDiode(uint8_t signal1, uint8_t signal2)
 {
     rgb_init();
 
-    if ((int)signal1 == 1 || (int)signal2 == 1)
+    if ( ((int)signal1 == 1) || ((int)signal2 == 1) )
     {
         rgb_setLeds(RGB_RED|RGB_GREEN|0);
     }
@@ -754,7 +794,8 @@ static void intToString(int value, uint8_t* pBuf, uint32_t len, uint32_t base)
     {
         tmpValue = -tmpValue;
         value    = -value;
-        pBuf[pos++] = '-';
+        pBuf[pos] = '-';
+		pos++;
     }
 
     // calculate the required length of the buffer
@@ -774,7 +815,8 @@ static void intToString(int value, uint8_t* pBuf, uint32_t len, uint32_t base)
 
     do {
 //        (int)pBuf[--pos] = (int)pAscii[value % (int)base];
-        pBuf[--pos] = (int)pAscii[value % (int)base];
+		pos--;
+        pBuf[pos] = (int)pAscii[value % (int)base];
         value /= base;
     } while(value > 0);
 
@@ -1082,7 +1124,7 @@ int main(void)
 		timestamp = getTicks();
 
 
-		if((int)signal2 == 1 && ((int)signal2_saved != 1))
+		if( ((int)signal2 == 1) && ((int)signal2_saved != 1) )
 		{
 			signal_num[index] = 2;
 			signal_time[index] = timestamp;
@@ -1090,7 +1132,7 @@ int main(void)
 			signal2_saved = 1;
 		}
 
-		if((int)signal1 == 1 && ((int)signal1_saved != 1))
+		if( ((int)signal1 == 1) && ((int)signal1_saved != 1))
 		{
 			signal_num[index] = 1;
 			signal_time[index] = timestamp;
@@ -1119,7 +1161,7 @@ int main(void)
 			// to uznajemy to jako normalne wejscie i wywalamy te rzeczy z tablic (chyba mozna nadpisac)
 			if(signal_num[0] != signal_num[1])
 			{
-				if(signal_time[1] - signal_time[0] > MIN_ENTRY_TIME) // NORMALNE PRZEJSCIE
+				if( (signal_time[1] - signal_time[0]) > MIN_ENTRY_TIME) // NORMALNE PRZEJSCIE
 				{
 					walk_time = signal_time[1] - signal_time[0];
 					if((int)signal_num[0] == 2)
