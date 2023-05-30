@@ -152,7 +152,7 @@ void initUART0(void)
 	LPC_PINCON->PINSEL0 |= (1u<<4u) | (1u<<6u); //Select TXD0 and RXD0 function for P0.2 & P0.3!
 	LPC_SC->PCONP |= 1u<<3u;
 
-	LPC_UART0->LCR = 3 | DLAB_BIT ; /* 8 bits, no Parity, 1 Stop bit & DLAB set to 1  */
+	LPC_UART0->LCR = 3u | DLAB_BIT ; /* 8 bits, no Parity, 1 Stop bit & DLAB set to 1  */
 	LPC_UART0->DLL = 12;
 	LPC_UART0->DLM = 0;
 
@@ -499,11 +499,13 @@ static uint32_t getNote(uint8_t ch)
         1275, // g - 784 Hz
 	};
 
-    if ((int)ch >= (int)'A' && (int)ch <= (int)'G')
+    if ((int)ch >= (int)'A' && (int)ch <= (int)'G'){
         result = notes[(int)ch - (int)'A'];
+	}
 
-    if ((int)ch >= (int)'a' && (int)ch <= (int)'g')
+    if ((int)ch >= (int)'a' && (int)ch <= (int)'g'){
         result = notes[(int)ch - (int)'a' + 7];
+	}
 
     return result;
 }
@@ -522,8 +524,9 @@ static uint32_t getNote(uint8_t ch)
 static uint32_t getDuration(uint8_t ch)
 {
 	uint32_t result = ((int)ch - (int)'0') * 200;
-    if ((int)ch < (int)'0' || (int)ch > (int)'9')
+    if ((int)ch < (int)'0' || (int)ch > (int)'9'){
         result = 400;
+	}
 
     return result;
 }
@@ -544,14 +547,19 @@ static uint32_t getPause(uint8_t ch)
     switch (ch) {
         case '+':
             result = 0;
+			break;
         case ',':
             result = 5;
+			break;
         case '.':
             result = 20;
+			break;
         case '_':
             result = 30;
+			break;
         default:
             result = 5;
+			break;
     }
 	return result;
 }
@@ -839,10 +847,12 @@ int arrayToInt(uint8_t arr[])
 	uint8_t number = 0;
 	for (int i = 0; i < EEPROMLen; i++)
 	{
-		if ((int)arr[i] == (int)'\0')
+		if ((int)arr[i] == (int)'\0'){
 			break;
-		if ((int)arr[i] >= (int)'0' && (int)arr[i] <= (int)'9')
+		}
+		if ((int)arr[i] >= (int)'0' && (int)arr[i] <= (int)'9'){
 			number = (uint8_t)number * (uint8_t)10 + ((uint8_t)arr[i] - (uint8_t)'0');
+		}
 	}
 	return number;
 }
