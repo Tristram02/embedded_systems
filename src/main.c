@@ -11,9 +11,6 @@
 #include "lpc17xx_ssp.h"
 #include "lpc17xx_timer.h"
 
-// UART
-#include "uart2.h"
-
 //	REAL TIME CLOCK
 #include "lpc17xx_rtc.h"
 
@@ -42,7 +39,6 @@
 
 #define NOTE_PIN_HIGH() GPIO_SetValue(0, (unsigned int)1<<26);
 #define NOTE_PIN_LOW()  GPIO_ClearValue(0, (unsigned int)1<<26);
-#define UART_DEV LPC_UART3
 #define EEPROMLen 20
 
 
@@ -52,14 +48,14 @@
 //
 #define RDR			((unsigned int)1<<0)
 #define THRE		((unsigned int)1<<5)
-#define	MULVAL		15u
-#define DIVADDVAL	2u
+#define	MULVAL		15
+#define DIVADDVAL	2
 #define Ux_FIFO_EN	((unsigned int)1<<0)
 #define Rx_FIFO_RST	((unsigned int)1<<1)
 #define Tx_FIFO_RST ((unsigned int)1<<2)
 #define DLAB_BIT	((unsigned int)1<<7)
-#define LINE_FEED	0x0Au
-#define ENTER	0x0Du
+#define LINE_FEED	0x0A
+#define ENTER	0x0D
 
 
 //############################//
@@ -75,14 +71,21 @@ static uint32_t msTicks = 0;
 static uint8_t buf[100]; //	Bufor do przechowania czasu wejscia
 static uint8_t pBuf[EEPROMLen]; //	Bufor do przechowania liczby ludzi
 
-static LPC_RTC_TypeDef *RTCx = (LPC_RTC_TypeDef *) LPC_RTC_BASE;
+LPC_RTC_TypeDef *RTCx = (LPC_RTC_TypeDef *) LPC_RTC_BASE;
 
 
 static uint8_t buf_mmc[22]; //21 znaki alarmu + 1 znak LF
-static FIL *fp;
+FIL *fp;
+UINT bw = 0;
+UINT br = 0;
+DIR dir;
+FRESULT res;
 
-static const char uartEnter[] = "Ktos wszedl!";
-static const char uartLeave[] = "Ktos wyszedl!";
+const char uartEnter[] = "Ktos wszedl!";
+const char uartLeave[] = "Ktos wyszedl!";
+
+uint8_t * buzzer_sound = (uint8_t*)"A1_";
+uint8_t * erase_sound = (uint8_t*)"B3_";
 
 
 
@@ -91,11 +94,10 @@ static const char uartLeave[] = "Ktos wyszedl!";
 //     DEKLARACJA FUNKCJI	  //
 //                            //
 //############################//
-static void init_uart(void);
 void initUART0(void);
 void U0Write(char txData);
 char U0Read(void);
-uint16_t GetTimeFromUART(void);
+uint16_t GetTimeFromUART();
 void writeUARTMsg(char msg[]);
 static void init_ssp(void);
 static void init_i2c(void);
@@ -106,42 +108,16 @@ static void playNote(uint32_t note, uint32_t durationMs);
 static uint32_t getNote(uint8_t ch);
 static uint32_t getDuration(uint8_t ch);
 static uint32_t getPause(uint8_t ch);
-static void playSong(const uint8_t *song);
+static void playSong(uint8_t *song);
 void makeLEDsColor(uint32_t status);
 static void colorRgbDiode(uint8_t signal1, uint8_t signal2);
-void display_time(void);
+void display_time();
 static void intToString(int value, uint8_t* pBuf, uint32_t len, uint32_t base);
 int arrayToInt(uint8_t arr[]);
 void SysTick_Handler(void);
 static uint32_t getTicks(void);
-void oledInfo(uint16_t walk_time, uint8_t liczbaOsob);
-void clearArray(uint8_t arr[]);
 int main(void);
 
-
-static void init_uart(void)
-{
-	PINSEL_CFG_Type PinCfg;
-	UART_CFG_Type uartCfg;
-
-	/* Initialize UART3 pin connect */
-	PinCfg.Funcnum = 2;
-	PinCfg.Pinnum = 0;
-	PinCfg.Portnum = 0;
-	PINSEL_ConfigPin(&PinCfg);
-	PinCfg.Pinnum = 1;
-	PINSEL_ConfigPin(&PinCfg);
-
-	uartCfg.Baud_rate = 115200;
-	uartCfg.Databits = UART_DATABIT_8;
-	uartCfg.Parity = UART_PARITY_NONE;
-	uartCfg.Stopbits = UART_STOPBIT_1;
-
-	UART_Init(UART_DEV, &uartCfg);
-
-	UART_TxCmd(UART_DEV, ENABLE);
-
-}
 
 /*!
  *  @brief    inicjazacja bloku UART0
@@ -149,15 +125,15 @@ static void init_uart(void)
 
 void initUART0(void)
 {
-	LPC_PINCON->PINSEL0 |= (1u<<4u) | (1u<<6u); //Select TXD0 and RXD0 function for P0.2 & P0.3!
-	LPC_SC->PCONP |= 1u<<3u;
+	LPC_PINCON->PINSEL0 |= (1<<4) | (1<<6); //Select TXD0 and RXD0 function for P0.2 & P0.3!
+	LPC_SC->PCONP |= 1<<3;
 
-	LPC_UART0->LCR = 3u | DLAB_BIT ; /* 8 bits, no Parity, 1 Stop bit & DLAB set to 1  */
+	LPC_UART0->LCR = 3 | DLAB_BIT ; /* 8 bits, no Parity, 1 Stop bit & DLAB set to 1  */
 	LPC_UART0->DLL = 12;
 	LPC_UART0->DLM = 0;
 
 	LPC_UART0->FCR |= Ux_FIFO_EN | Rx_FIFO_RST | Tx_FIFO_RST;
-	LPC_UART0->FDR = (MULVAL<<4u) | DIVADDVAL; /* MULVAL=15(bits - 7:4) , DIVADDVAL=2(bits - 3:0)  */
+	LPC_UART0->FDR = (MULVAL<<4) | DIVADDVAL; /* MULVAL=15(bits - 7:4) , DIVADDVAL=2(bits - 3:0)  */
 	LPC_UART0->LCR &= ~(DLAB_BIT);
 }
 
@@ -184,19 +160,13 @@ void U0Write(char txData)
 
 char U0Read(void)
 {
-	char result = 'a';
 	while(!(LPC_UART0->LSR & RDR)){
 		if (((GPIO_ReadValue(0) >> 4) & 0x01) == 0)
 		{
-			result = 'n';
-			break;
+			return 'n';
 		}
 	}; //wait until data arrives in Rx FIFO
-	if (result != 'n')
-	{
-		result = LPC_UART0->RBR;
-	}
-	return result;
+	return LPC_UART0->RBR;
 }
 
 
@@ -209,25 +179,20 @@ char U0Read(void)
  *            wartosc zwracana moze przekraczacz maksymalne wartosci RTC
  */
 
-uint16_t GetTimeFromUART(void)
+uint16_t GetTimeFromUART()
 {
 	uint16_t data = 0;
-	uint16_t result = 0;
-	uint8_t flag = 0;
 	while (1)
 	{
 		char input = U0Read(); //Read Data from Rx
 		if((int)input == (int)ENTER) //Check if user pressed Enter key
 		{
-			//Send NEW Line Character(s) i.e. "\n"
-			U0Write(ENTER); //Comment this for Linux or MacOS
-			U0Write(LINE_FEED); //Windows uses CR+LF for newline.
-			flag = 0;
+			U0Write(ENTER);
+			U0Write(LINE_FEED);
 		}
 		else if((int)input == (int)'n')
 		{
-			result = 0;
-			flag = 1;
+			return 0;
 		}
 		else if(input == ' ')
 		{
@@ -236,28 +201,16 @@ uint16_t GetTimeFromUART(void)
 			{
 				const char msg[] = "Prawdopodobnie wybrales zle dane! Ustawiam je jako 1\n\r";
 				writeUARTMsg(msg);
-				flag = 1;
-				result = 1;
+				return 1;
 			}
-			else
-			{
-				result = data;
-				flag = 1;
-			}
+			return data;
 		}
 		else
 		{
 			U0Write(input); //Tx Read Data back
 			data = (uint16_t)data * (uint16_t)10 + ((uint16_t)input - (uint16_t)'0');
-			flag = 0;
-		}
-
-		if ((int)flag == 1)
-		{
-			break;
 		}
 	}
-	return result;
 }
 
 /*!
@@ -282,9 +235,6 @@ void writeUARTMsg(char msg[])
 	U0Write(ENTER);
 }
 
-//############################//
-//          INIT SSP          //
-//############################//
 
 /*!
  *  @brief    Inicjalizacja SSP
@@ -328,12 +278,11 @@ static void init_ssp(void)
 
 }
 
-//############################//
-//          INIT I2C          //
-//############################//
 
 /*!
+ *
  *  @brief    Inicjalizacja I2C
+ *
  */
 
 static void init_i2c(void)
@@ -355,9 +304,7 @@ static void init_i2c(void)
 	I2C_Cmd(LPC_I2C2, ENABLE);
 }
 
-//############################//
-//          INIT MMC          //
-//############################//
+
 
 /*!
  *  @brief    Inicjalizacja MMC
@@ -366,21 +313,26 @@ static void init_i2c(void)
 
 static int init_mmc(void)
 {
-	DIR dir;
-	FATFS Fatfs[1];
-	FRESULT res = f_mount(&Fatfs[0],"", 0);
-	uint8_t result = 0;
+	static FATFS Fatfs[1];
+	res = f_mount(&Fatfs[0],"", 0);
+	int result = 0;
 	if (res != FR_OK) {
-		(void)sprintf(buf_mmc, sizeof(buf_mmc), "Failed to mount 0: %d \r\n", res);
+		int i;
+		i = sprintf(buf_mmc, "Failed to mount 0: %d \r\n", res);
 		oled_putString(1,40, buf_mmc, OLED_COLOR_BLACK, OLED_COLOR_WHITE);
 		result = 1;
 	}
 
 	res = f_opendir(&dir, "/");
 	if (res != FR_OK) {
-		(void)sprintf(buf_mmc, sizeof(buf_mmc), "Failed to open /: %d \r\n", res);
+		(void)sprintf(buf_mmc, "Failed to open /: %d \r\n", res);
 		oled_putString(1,40, buf_mmc, OLED_COLOR_BLACK, OLED_COLOR_WHITE);
 		result = 1;
+	}
+	if (result == 1)
+	{
+		const char msg[] = "Blad inicjalizacji SD!\n\r";
+		writeUARTMsg(msg);
 	}
 	return result;
 }
@@ -396,7 +348,6 @@ static int init_mmc(void)
 
 void save_log(const uint8_t log[], const uint8_t filename[])
 {
-	UINT bw = 0;
 	FRESULT a = f_open(&fp, filename, FA_OPEN_APPEND | FA_WRITE);
 		if(a == FR_OK) {
 			if(f_write(&fp, log, strlen(log), &bw) == FR_OK) {
@@ -411,31 +362,29 @@ void save_log(const uint8_t log[], const uint8_t filename[])
 		f_close(&fp);
 }
 
-//############################//
-//                            //
-//          MELODIA           //
-//                            //
-//############################//
+
+/*!
+ *
+ *  @brief    Inicjalizacja pinow odpowiedzialnych za dzialanie speakera
+ *
+ */
+
 
 void init_speaker(void)
 {
-	GPIO_SetDir(2, 1u<<0u, 1);
-	GPIO_SetDir(2, 1u<<1u, 1);
+	GPIO_SetDir(2, 1<<0, 1);
+	GPIO_SetDir(2, 1<<1, 1);
 
-	GPIO_SetDir(0, 1UL<<27u, 1);
-	GPIO_SetDir(0, 1UL<<28u, 1);
-	GPIO_SetDir(2, 1UL<<13u, 1);
-	GPIO_SetDir(0, 1UL<<26u, 1);
+	GPIO_SetDir(0, 1<<27, 1);
+	GPIO_SetDir(0, 1<<28, 1);
+	GPIO_SetDir(2, 1<<13, 1);
+	GPIO_SetDir(0, 1<<26, 1);
 
-	GPIO_ClearValue(0, 1UL<<27u); //LM4811-clk
-	GPIO_ClearValue(0, 1UL<<28u); //LM4811-up/dn
-	GPIO_ClearValue(2, 1UL<<13u); //LM4811-shutdn
+	GPIO_ClearValue(0, 1<<27); //LM4811-clk
+	GPIO_ClearValue(0, 1<<28); //LM4811-up/dn
+	GPIO_ClearValue(2, 1<<13); //LM4811-shutdn
 }
 
-
-//############################//
-//         PLAY NOTE          //
-//############################//
 
 /*!
  *  @brief    Zagranie nuty przez okreslony czas
@@ -481,7 +430,6 @@ static void playNote(uint32_t note, uint32_t durationMs)
 
 static uint32_t getNote(uint8_t ch)
 {
-	uint32_t result = 0;
 	static uint32_t notes[] = {
         2272, // A - 440 Hz
         2024, // B - 494 Hz
@@ -497,17 +445,15 @@ static uint32_t getNote(uint8_t ch)
         1517, // e - 659 Hz
         1432, // f - 698 Hz
         1275, // g - 784 Hz
-	};
+};
 
-    if ((int)ch >= (int)'A' && (int)ch <= (int)'G'){
-        result = notes[(int)ch - (int)'A'];
-	}
+    if ((int)ch >= (int)'A' && (int)ch <= (int)'G')
+        return notes[(int)ch - (int)'A'];
 
-    if ((int)ch >= (int)'a' && (int)ch <= (int)'g'){
-        result = notes[(int)ch - (int)'a' + 7];
-	}
+    if ((int)ch >= (int)'a' && (int)ch <= (int)'g')
+        return notes[(int)ch - (int)'a' + 7];
 
-    return result;
+    return 0;
 }
 
 /*!
@@ -523,12 +469,12 @@ static uint32_t getNote(uint8_t ch)
 
 static uint32_t getDuration(uint8_t ch)
 {
-	uint32_t result = ((int)ch - (int)'0') * 200;
-    if ((int)ch < (int)'0' || (int)ch > (int)'9'){
-        result = 400;
-	}
+    if ((int)ch < (int)'0' || (int)ch > (int)'9')
+        return 400;
 
-    return result;
+    /* number of ms */
+
+    return ((int)ch - (int)'0') * 200;
 }
 
 /*!
@@ -543,40 +489,32 @@ static uint32_t getDuration(uint8_t ch)
 
 static uint32_t getPause(uint8_t ch)
 {
-	uint32_t result = 0;
     switch (ch) {
         case '+':
-            result = 0;
-			break;
+            return 0;
         case ',':
-            result = 5;
-			break;
+            return 5;
         case '.':
-            result = 20;
-			break;
+            return 20;
         case '_':
-            result = 30;
-			break;
+            return 30;
         default:
-            result = 5;
-			break;
+            return 5;
     }
-	return result;
 }
 
 /*!
  *  @brief    Gra podany utwor
  *  @param song
- *             wskaznik na uint8_t ktory przechowuje nuty utworu
+ *             wskaznik na uint8_t ktory przechowuje tony utworu
  *
  */
 
-static void playSong(const uint8_t *song)
+static void playSong(uint8_t *song)
 {
     uint32_t note = 0;
     uint32_t dur  = 0;
     uint32_t pause = 0;
-	uint8_t flag = 0;
 
     /*
      * A song is a collection of tones where each tone is
@@ -586,29 +524,15 @@ static void playSong(const uint8_t *song)
      */
 
     while(*song != '\0') {
-        note = getNote(*song);
-		song++;
+        note = getNote(*song++);
         if (*song == '\0'){
-            flag = 1;
+            break;
 		}
-		else
-		{
-			dur  = getDuration(*song);
-			song++;
-		}
+        dur  = getDuration(*song++);
         if (*song == '\0'){
-            flag = 1;
+            break;
 		}
-		else
-		{
-			pause = getPause(*song);
-			song++;
-		}
-
-		if ((int)flag == 1)
-		{
-			break;
-		}
+        pause = getPause(*song++);
 
         playNote(note, dur);
         //delay32Ms(0, pause);
@@ -616,28 +540,15 @@ static void playSong(const uint8_t *song)
     }
 }
 
-
-
-//############################//
-//                            //
-//           DIODY            //
-//                            //
-//############################//
-
-
-//############################//
-//         LEDS COLOR         //
-//############################//
-
 /*!
  *  @brief    Tworzy sekwencje zapalania sie ledow w zaleznosci od parametru
  *
  *  @param status
- *             mowi o tym czy uzytkownik wszedl czy wyszedl z pomieszczenia
+ *             zawiera informacje o tym czy uzytkownik wszedl czy wyszedl z pomieszczenia
  *
  */
 
-void makeLEDsColor(uint32_t status) 
+void makeLEDsColor(uint32_t status)
 {
 	uint16_t ledOn = 0;
 	uint32_t count = 0;
@@ -661,10 +572,10 @@ void makeLEDsColor(uint32_t status)
 
 	pca9532_init();
 
-	if((int)status == 0){
-		for(int i=0; i<50; i++) {
+	if((int)status == 1){
+		 for(int i=0; i<50; i++) {
 			if ((int)count < 8){
-				ledOn = uint16_t(ledOn | ((unsigned int)1 << count));
+				ledOn |= ((unsigned int)1 << count);
 			}
 
 			pca9532_setLeds(ledOn, 0);
@@ -680,13 +591,13 @@ void makeLEDsColor(uint32_t status)
 
 
 			Timer0_Wait(delay);
-		}
+		 }
 	}
 	else{
 		count = 8;
-			for(int i=0; i<50; i++) {
+		 for(int i=0; i<50; i++) {
 			if ((int)count < 16 ){
-				ledOn = uint16_t(ledOn | ((unsigned int)1 << count));
+				ledOn |= ((unsigned int)1 << count);
 			}
 
 			pca9532_setLeds(ledOn, 0);
@@ -702,27 +613,27 @@ void makeLEDsColor(uint32_t status)
 
 
 			Timer0_Wait(delay);
-	}
+		 }
 	}
 
 }
 
-//############################//
-//           DIODA            //
-//############################//
 
 /*!
- *  @brief    Zaswieca diode w zaleznosci od podanego parametru
- *  @param nazwa  parametru 1
- *             opis parametru 1
+ *  @brief    Modyfikuje kolor diody w zaleznosci od stanu czujnikow
  *
+ *  @param signal1
+ *             sygnal pochodzacy z pierwszego czujnika
+ *
+ *	@param signal2
+ *             sygnal pochdzacy z drugiego czujnika
  */
 
 static void colorRgbDiode(uint8_t signal1, uint8_t signal2)
 {
     rgb_init();
 
-    if ( ((int)signal1 == 1) || ((int)signal2 == 1) )
+    if (signal1 == 1 || signal2 == 1)
     {
         rgb_setLeds(RGB_RED|RGB_GREEN|0);
     }
@@ -733,19 +644,13 @@ static void colorRgbDiode(uint8_t signal1, uint8_t signal2)
 
 }
 
-//############################//
-//                            //
-//      REAL TIME CLOCK       //
-//                            //
-//############################//
-
 /*!
  *  @brief    Pobiera dane z RTC i modyfikuje globalny bufor
  *  		  ktory przechowuje informacje o aktualnej godzinie
  *
  */
 
-void display_time(void) 
+void display_time()
 {
     uint32_t hour;
 	uint32_t minute;
@@ -756,25 +661,6 @@ void display_time(void)
     (void)snprintf(buf, 9, "%02d:%02d:%02d", hour, minute, second);
 }
 
-//############################//
-//                            //
-//            OLED            //
-//                            //
-//############################//
-
-/*!
- *  @brief    Krótko co procedura robi.
- *  @param nazwa  parametru 1
- *             opis parametru 1
- *  @param nazwa  parametru 2
- *             opis parametru 2
- *
- *  @param nazwa  parametru n
- *             opis parametru n
- *  @returns  np. tak: true on success, false otherwise
- *  @side effects:
- *            efekty uboczne
- */
 
 static void intToString(int value, uint8_t* pBuf, uint32_t len, uint32_t base)
 {
@@ -802,8 +688,7 @@ static void intToString(int value, uint8_t* pBuf, uint32_t len, uint32_t base)
     {
         tmpValue = -tmpValue;
         value    = -value;
-        pBuf[pos] = '-';
-		pos++;
+        pBuf[pos++] = '-';
     }
 
     // calculate the required length of the buffer
@@ -823,8 +708,7 @@ static void intToString(int value, uint8_t* pBuf, uint32_t len, uint32_t base)
 
     do {
 //        (int)pBuf[--pos] = (int)pAscii[value % (int)base];
-		pos--;
-        pBuf[pos] = (int)pAscii[value % (int)base];
+        pBuf[--pos] = (int)pAscii[value % (int)base];
         value /= base;
     } while(value > 0);
 
@@ -847,21 +731,13 @@ int arrayToInt(uint8_t arr[])
 	uint8_t number = 0;
 	for (int i = 0; i < EEPROMLen; i++)
 	{
-		if ((int)arr[i] == (int)'\0'){
+		if ((int)arr[i] == (int)'\0')
 			break;
-		}
-		if ((int)arr[i] >= (int)'0' && (int)arr[i] <= (int)'9'){
+		if ((int)arr[i] >= (int)'0' && (int)arr[i] <= (int)'9')
 			number = (uint8_t)number * (uint8_t)10 + ((uint8_t)arr[i] - (uint8_t)'0');
-		}
 	}
 	return number;
 }
-
-//############################//
-//                            //
-//           TIMER            //
-//                            //
-//############################//
 
 /*!
  *  @brief    Inkrementuje timer
@@ -899,7 +775,7 @@ static uint32_t getTicks(void)
 void oledInfo(uint16_t walk_time, uint8_t liczbaOsob)
 {
 	uint16_t s = walk_time;
-	uint16_t ms = uint16_t((int)s % 1000);
+	uint16_t ms = (int)s % 1000;
 	s /= 1000;
 
 	(void)snprintf(buf, 9, "%2d.%3d", s, ms);//	CONVERT MEASURED TIME
@@ -954,19 +830,18 @@ int main(void)
 	uint8_t liczbaOsob = 0;
 	uint16_t offset = 240;
 	uint8_t len = 0;
-	UINT br = 0;
 
 	uint16_t walk_time;
 	uint8_t signal_num[10] = {0};
 	uint16_t signal_time[10] = {0};
 	uint8_t index = 0;
-	uint8_t signal2_saved = 0;
-	uint8_t signal1_saved = 0;
+	uint8_t signal2_saved;
+	uint8_t signal1_saved;
 	uint16_t timestamp;
 	uint16_t MIN_ENTRY_TIME = 300;
 
-	const uint8_t * erase_sound = (const uint8_t*)"B3_";
-	const uint8_t * buzzer_sound = (const uint8_t*)"A1_";
+
+
 
 	//############################//
 	//           INITS            //
@@ -974,7 +849,6 @@ int main(void)
 
 	init_i2c();
 	init_ssp();
-	init_uart();
 	oled_init();
 	eeprom_init();
 	initUART0();
@@ -987,8 +861,11 @@ int main(void)
 
 	oled_clearScreen(OLED_COLOR_WHITE);
 
-	oled_putString(1, 9, "Timer:", OLED_COLOR_BLACK, OLED_COLOR_WHITE);
-	oled_putString(1, 20, "IleOsob:", OLED_COLOR_BLACK, OLED_COLOR_WHITE);
+	oled_putString(1, 10, "Podaj date", OLED_COLOR_BLACK, OLED_COLOR_WHITE);
+	oled_putString(1, 20, "i godzine", OLED_COLOR_BLACK, OLED_COLOR_WHITE);
+	oled_putString(1, 30, "Szczegoly w", OLED_COLOR_BLACK, OLED_COLOR_WHITE);
+	oled_putString(1, 40, "terminalu", OLED_COLOR_BLACK, OLED_COLOR_WHITE);
+	oled_putString(1, 50, "SW3 by pominac", OLED_COLOR_BLACK, OLED_COLOR_WHITE);
 
 	init_mmc();
 
@@ -996,8 +873,11 @@ int main(void)
 	//      REAL TIME CLOCK       //
 	//############################//
 
-	const char msg[] = "Wprowadz date oraz godzine. Jesli chcesz pominac wpisz \'n\'\n\rPodaj dane w kolejnosc:\n\rDzien Miesiac Rok Godzina Minuta Sekunda\n\r";
+	const char msg[] = "\n\rWprowadz date oraz godzine. Jesli chcesz pominac wpisz \'n\'\n\r"
+						"Spacja zatwierdza wybor a wprowadzone dane podaj wedlug ponizszego schematu\n\r"
+						"Dzien Miesiac Rok Godzina Minuta Sekunda\n\r";
 	writeUARTMsg(msg);
+	strcpy(msg, "okej");
 
 	day = GetTimeFromUART();
 	if ((int)day != 0)
@@ -1037,6 +917,9 @@ int main(void)
 	//############################//
 	//            MMC             //
 	//############################//
+	oled_clearScreen(OLED_COLOR_WHITE);
+	oled_putString(1, 10, "Timer:", OLED_COLOR_BLACK, OLED_COLOR_WHITE);
+	oled_putString(1, 20, "IleOsob:", OLED_COLOR_BLACK, OLED_COLOR_WHITE);
 
 	(void)snprintf(buf_mmc, sizeof(buf_mmc), "%02d:%02d:%02d %02d.%02d.%04dr.\n", hour, minute, second, day, month, year);
 	save_log(buf_mmc, "log.txt");
@@ -1085,6 +968,8 @@ int main(void)
 
 	(void)snprintf(pBuf, 9, "%2d", liczbaOsob);
 	oled_putString(70, 20, pBuf, OLED_COLOR_BLACK, OLED_COLOR_WHITE);
+
+
 	//############################//
 	//         MAIN LOOP          //
 	//############################//
@@ -1127,30 +1012,30 @@ int main(void)
 
 		}
 
-		// 0 jak nic
-		// 1 jak jest przerywam
+		// 0 Kiedy czujniki sa dobrze podlaczone i nic nie zakloca swiatla
+		// 1 Kiedy jest przerwanie
 
 
 		timestamp = getTicks();
 
 
-		if( ((int)signal2 == 1) && ((int)signal2_saved != 1) )
+		if((int)signal2 == 1 && ((int)signal2_saved != 1))
 		{
 			signal_num[index] = 2;
 			signal_time[index] = timestamp;
-			index = uint8_t((int)index + 1);
+			index += 1;
 			signal2_saved = 1;
 		}
 
-		if( ((int)signal1 == 1) && ((int)signal1_saved != 1))
+		if((int)signal1 == 1 && ((int)signal1_saved != 1))
 		{
 			signal_num[index] = 1;
 			signal_time[index] = timestamp;
-			index = uint8_t((int)index + 1);
+			index += 1;
 			signal1_saved = 1;
 		}
 
-		if((int)index > 4){
+		if(index > 4){
 			index = 0;
 		}
 
@@ -1165,34 +1050,33 @@ int main(void)
 		}
 
 
-		if((int)index == 2) // kiedy mamy zapisane 2 synglay
+		if((int)index == 2) // Kiedy mamy zapisane 2 sygnaly
 		{
-			// kiedy te 2 sygnaly za z roznych tych i maja czas wiekszy od...
-			// to uznajemy to jako normalne wejscie i wywalamy te rzeczy z tablic (chyba mozna nadpisac)
+			//	Sprawdzamy czy sa z roznych stron oraz czy czas pomiedzy
+			//	przejsciem przez nie jest wiekszy od MIN_ENTRY_TIME
+			//	Oznacza to ze ktos po prostu wszedl lub wyszedl
 			if(signal_num[0] != signal_num[1])
 			{
-				if( (signal_time[1] - signal_time[0]) > MIN_ENTRY_TIME) // NORMALNE PRZEJSCIE
+				if(signal_time[1] - signal_time[0] > MIN_ENTRY_TIME) // NORMALNE PRZEJSCIE
 				{
 					walk_time = signal_time[1] - signal_time[0];
-					if((int)signal_num[0] == 2)
+					if(signal_num[0] == 2)
 					{
-						if ((int)liczbaOsob != 255)
+						if (liczbaOsob != 255)
 						{
-							liczbaOsob = uint8_t((int)liczbaOsob + 1);
+							liczbaOsob += 1;
 						}
 						(void)playSong(buzzer_sound);
 						(void)oledInfo(walk_time, liczbaOsob);
-						(void)makeLEDsColor(1); 
 					}
 					else
 					{
-						if ((int)liczbaOsob != 0)
+						if (liczbaOsob != 0)
 						{
-							liczbaOsob = uint8_t((int)liczbaOsob - 1);
+							liczbaOsob -= 1;
 						}
 						(void)playSong(buzzer_sound);
 						(void)oledInfo(walk_time, liczbaOsob);
-						(void)makeLEDsColor(0);
 					}
 					index = 0;
 					msTicks = 0;
@@ -1209,38 +1093,36 @@ int main(void)
 				(void)clearArray(signal_num);
 			}
 		}
-		if((int)index == 4) // kiedy mamy zapisane wiecej niz 2 sygnaly (4)
-		// oznacza to ze weszly 2 osoby na raz z roznych kierunkow w roznym czasie (trollujA)
+		if((int)index == 4) // Kiedy mamy zapisane 4 sygnaly
+							// oznacza to ze weszly 2 osoby na raz z roznych kierunkow w roznym czasie
 		{
 			if(signal_num[2] == signal_num[3]) // jesli dwa nastepne sygnaly sa te same
 			{
 				walk_time = signal_time[3] - signal_time[0];
-				// to smieszne przepuszczenie
-				if((int)signal_num[3] == 2) // jesli ostatnim sygnalem jest 2 to se wychodzimmy
+				//	Przepuszczenie kogos w drzwiach
+				if((int)signal_num[3] == 2) // jesli ostatnim sygnalem jest 2 to wychodzimy
 				{
 					if ((int)liczbaOsob != 0)
 					{
-						liczbaOsob = uint8_t((int)liczbaOsob - 1);
+						liczbaOsob -= 1;
 					}
 					(void)playSong(buzzer_sound);
 					(void)oledInfo(walk_time, liczbaOsob);
-					(void)makeLEDsColor(0);
 				}
 				else
 				{
 					if ((int)liczbaOsob != 255)
 					{
-						liczbaOsob = uint8_t((int)liczbaOsob + 1);
+						liczbaOsob += 1;
 					}
 					(void)playSong(buzzer_sound);
 					(void)oledInfo(walk_time, liczbaOsob);
-					(void)makeLEDsColor(1);
 				}
 				index = 0;
 				msTicks = 0;
 				(void)clearArray(signal_num);
 			}
-			else // jesli sygnaly sa rozne, oznacza to ze osoby strollowaly mega i se weszly i wyszly
+			else // jesli sygnaly sa rozne, oznacza to ze osoby weszly i wyszly
 			{
 				index = 0;
 				(void)clearArray(signal_num);
