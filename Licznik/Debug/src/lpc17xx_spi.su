@@ -1,0 +1,6 @@
+lpc17xx_spi.c:40:6:SPI_Init	8	static
+lpc17xx_spi.c:88:6:SPI_ConfigClockRate	16	static
+lpc17xx_spi.c:100:6:SPI_CS_Low	4	static
+lpc17xx_spi.c:112:6:SPI_CS_High	4	static
+lpc17xx_spi.c:126:9:SPI_SendByte	16	static
+lpc17xx_spi.c:142:9:SPI_RecvByte	8	static

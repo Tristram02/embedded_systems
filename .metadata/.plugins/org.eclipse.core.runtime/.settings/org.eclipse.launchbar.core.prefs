@@ -1,7 +1,7 @@
 LaunchTargetManager/org.eclipse.launchbar.core.launchTargetType.local,Local/arch=x86_64
 LaunchTargetManager/org.eclipse.launchbar.core.launchTargetType.local,Local/name=Local
 LaunchTargetManager/org.eclipse.launchbar.core.launchTargetType.local,Local/os=win32
-configDescList=org.eclipse.cdt.dsf.gdb.gdbRemotedescriptorType\:bnc_oled LinkServer Debug,org.eclipse.cdt.dsf.gdb.gdbRemotedescriptorType\:demo LinkServer Debug,org.eclipse.cdt.dsf.gdb.gdbRemotedescriptorType\:leds_joystick LinkServer Debug,org.eclipse.cdt.dsf.gdb.gdbRemotedescriptorType\:periph_blinky LinkServer Debug,org.eclipse.cdt.dsf.gdb.gdbRemotedescriptorType\:periph_ritimer LinkServer Debug,org.eclipse.cdt.dsf.gdb.gdbRemotedescriptorType\:periph_spi LinkServer Debug,org.eclipse.cdt.dsf.gdb.gdbRemotedescriptorType\:periph_timer LinkServer Debug,org.eclipse.cdt.dsf.gdb.gdbRemotedescriptorType\:rgb_joystick LinkServer Debug,org.eclipse.cdt.dsf.gdb.gdbRemotedescriptorType\:speaker_wav LinkServer Debug,org.eclipse.cdt.dsf.gdb.gdbRemotedescriptorType\:speaker_tone LinkServer Debug,org.eclipse.cdt.dsf.gdb.gdbRemotedescriptorType\:xbee_oled LinkServer Debug,org.eclipse.cdt.dsf.gdb.gdbRemotedescriptorType\:i2c_eeprom LinkServer Debug,org.eclipse.cdt.dsf.gdb.gdbRemotedescriptorType\:oled_periph LinkServer Debug
+configDescList=org.eclipse.cdt.dsf.gdb.gdbRemotedescriptorType\:Licznik LinkServer Debug
 eclipse.preferences.version=1
-org.eclipse.cdt.dsf.gdb.gdbRemotedescriptorType\:bnc_oled\ LinkServer\ Debug/activeLaunchMode=debug
-org.eclipse.cdt.dsf.gdb.gdbRemotedescriptorType\:bnc_oled\ LinkServer\ Debug/activeLaunchTarget=null\:---
+org.eclipse.cdt.dsf.gdb.gdbRemotedescriptorType\:oled_periph\ LinkServer\ Debug/activeLaunchMode=debug
+org.eclipse.cdt.dsf.gdb.gdbRemotedescriptorType\:oled_periph\ LinkServer\ Debug/activeLaunchTarget=null\:---
