@@ -1,6 +1,6 @@
-10:10:24 **** Incremental Build of configuration Debug for project Licznik ****
+11:10:58 **** Incremental Build of configuration Debug for project Licznik ****
 make -r -j16 all 
 make: Nothing to be done for 'all'.
 
-10:10:24 Build Finished. 0 errors, 0 warnings. (took 97ms)
+11:10:58 Build Finished. 0 errors, 0 warnings. (took 98ms)
 

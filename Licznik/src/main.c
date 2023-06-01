@@ -89,7 +89,7 @@ void writeUARTMsg(char msg[]);
 static void init_ssp(void);
 static void init_i2c(void);
 static int init_mmc(void);
-void save_log(const uint8_t log[], const uint8_t filename[]);
+void save_log(const uint8_t log[], const uint8_t filename[], uint8_t SDFlag);
 void init_speaker(void);
 static void playNote(uint32_t note, uint32_t durationMs);
 static uint32_t getNote(uint8_t ch);
@@ -333,9 +333,11 @@ static int init_mmc(void)
  *             Nazwa pliku do ktorego ma zostac zapisany komunikat
  */
 
-void save_log(const uint8_t log[], const uint8_t filename[])
+void save_log(const uint8_t log[], const uint8_t filename[], uint8_t SDFlag)
 {
-	FRESULT a = f_open(&fp, filename, FA_OPEN_APPEND | FA_WRITE);
+	if (SDFlag == 0)
+	{
+		FRESULT a = f_open(&fp, filename, FA_OPEN_APPEND | FA_WRITE);
 		if(a == FR_OK) {
 			if(f_write(&fp, log, strlen(log), &bw) == FR_OK) {
 
@@ -347,6 +349,7 @@ void save_log(const uint8_t log[], const uint8_t filename[])
 			oled_putString(1,41, "Blad SD", OLED_COLOR_BLACK, OLED_COLOR_WHITE);
 		}
 		f_close(&fp);
+	}
 }
 
 
@@ -827,6 +830,7 @@ int main(void)
 	uint16_t timestamp;
 	uint16_t MIN_ENTRY_TIME = 300;
 
+	uint8_t SDFlag = 0;
 
 
 
@@ -854,7 +858,7 @@ int main(void)
 	oled_putString(1, 40, "terminalu", OLED_COLOR_BLACK, OLED_COLOR_WHITE);
 	oled_putString(1, 50, "SW3 by pominac", OLED_COLOR_BLACK, OLED_COLOR_WHITE);
 
-	init_mmc();
+	SDFlag = init_mmc();
 
 	//############################//
 	//      REAL TIME CLOCK       //
@@ -908,7 +912,7 @@ int main(void)
 	oled_putString(1, 20, "IleOsob:", OLED_COLOR_BLACK, OLED_COLOR_WHITE);
 
 	(void)snprintf(buf_mmc, sizeof(buf_mmc), "%02d:%02d:%02d %02d.%02d.%04dr.\n", hour, minute, second, day, month, year);
-	save_log(buf_mmc, "log.txt");
+	save_log(buf_mmc, "log.txt", SDFlag);
 
 	//############################//
 	//           EEPROM           //
@@ -916,32 +920,32 @@ int main(void)
 
 	len = eeprom_read(pBuf, offset, EEPROMLen);
 
-	if ((int)len == (int)EEPROMLen)
+	if ((int)len != (int)EEPROMLen)
 	{
 		(void)snprintf(buf_mmc, sizeof(buf_mmc), "%02d:%02d:%02d %02d.%02d.%04dr.", hour, minute, second, day, month, year);
-		save_log(buf_mmc, "log.txt");
-		save_log("\nBlad EEPROM\n", "log.txt");
+		save_log(buf_mmc, "log.txt", SDFlag);
+		save_log("\nBlad EEPROM\n", "log.txt", SDFlag);
 		writeUARTMsg("\nBlad EEPROM\n");
 
 		FRESULT a = f_open(&fp, "ludzie.txt", FA_READ);
 		if (a == FR_OK) {
 			if (f_read(&fp, pBuf, EEPROMLen, &br) == FR_OK) {
 				(void)snprintf(buf_mmc, sizeof(buf_mmc), "%02d:%02d:%02d %02d.%02d.%04dr.", hour, minute, second, day, month, year);
-				save_log(buf_mmc, "log.txt");
-				save_log("\nOdczyt z SD liczby ludzi\n", "log.txt");
+				save_log(buf_mmc, "log.txt", SDFlag);
+				save_log("\nOdczyt z SD liczby ludzi\n", "log.txt", SDFlag);
 				writeUARTMsg("\nOdczyt z SD liczby ludzi\n");
 				liczbaOsob = arrayToInt(pBuf);
 			}
 			else {
 				(void)snprintf(buf_mmc, sizeof(buf_mmc), "%02d:%02d:%02d %02d.%02d.%04dr.", hour, minute, second, day, month, year);
-				save_log(buf_mmc, "log.txt");
-				save_log("\nBlad odczytu z SD liczby ludzi\n", "log.txt");
+				save_log(buf_mmc, "log.txt", SDFlag);
+				save_log("\nBlad odczytu z SD liczby ludzi\n", "log.txt", SDFlag);
 				writeUARTMsg("\nBlad odczytu z SD liczby ludzi\n");
 			}
 		}
 		else {
 			(void)snprintf(buf_mmc, sizeof(buf_mmc), "%02d:%02d:%02d %02d.%02d.%04dr.", hour, minute, second, day, month, year);
-			save_log(buf_mmc, "log.txt");
+			save_log(buf_mmc, "log.txt", SDFlag);
 			oled_putString(1, 41, "\nBlad SD\n", OLED_COLOR_BLACK, OLED_COLOR_WHITE);
 			writeUARTMsg("\nBlad SD\n");
 		}
@@ -952,8 +956,8 @@ int main(void)
 	{
 		liczbaOsob = arrayToInt(pBuf);
 		(void)snprintf(buf_mmc, sizeof(buf_mmc), "%02d:%02d:%02d %02d.%02d.%04dr.", hour, minute, second, day, month, year);
-		save_log(buf_mmc, "log.txt");
-		save_log("\nOdczyt z EEPROM liczby ludzi\n", "log.txt");
+		save_log(buf_mmc, "log.txt", SDFlag);
+		save_log("\nOdczyt z EEPROM liczby ludzi\n", "log.txt", SDFlag);
 	}
 
 	(void)snprintf(pBuf, 9, "%2d", liczbaOsob);
@@ -1060,8 +1064,8 @@ int main(void)
 						(void)oledInfo(walk_time, liczbaOsob);
 						(void)makeLEDsColor(0);
 						(void)snprintf(buf_mmc, sizeof(buf_mmc), "%02d:%02d:%02d %02d.%02d.%04dr.", hour, minute, second, day, month, year);
-						save_log(buf_mmc, "log.txt");
-						save_log("\n\rKtos wszedl do pomieszczenia\n\r", "log.txt");
+						save_log(buf_mmc, "log.txt", SDFlag);
+						save_log("\n\rKtos wszedl do pomieszczenia\n\r", "log.txt", SDFlag);
 						writeUARTMsg("Ktos wszedl");
 					}
 					else
@@ -1074,8 +1078,8 @@ int main(void)
 						(void)oledInfo(walk_time, liczbaOsob);
 						(void)makeLEDsColor(1);
 						(void)snprintf(buf_mmc, sizeof(buf_mmc), "%02d:%02d:%02d %02d.%02d.%04dr.", hour, minute, second, day, month, year);
-						save_log(buf_mmc, "log.txt");
-						save_log("\n\rKtos wyszedl z pomieszczenia\n\r", "log.txt");
+						save_log(buf_mmc, "log.txt", SDFlag);
+						save_log("\n\rKtos wyszedl z pomieszczenia\n\r", "log.txt", SDFlag);
 						writeUARTMsg("Ktos wyszedl");
 					}
 					index = 0;
@@ -1110,8 +1114,8 @@ int main(void)
 					(void)oledInfo(walk_time, liczbaOsob);
 					(void)makeLEDsColor(1);
 					(void)snprintf(buf_mmc, sizeof(buf_mmc), "%02d:%02d:%02d %02d.%02d.%04dr.", hour, minute, second, day, month, year);
-					save_log(buf_mmc, "log.txt");
-					save_log("\n\rKtos wyszedl z pomieszczenia\n\r", "log.txt");
+					save_log(buf_mmc, "log.txt", SDFlag);
+					save_log("\n\rKtos wyszedl z pomieszczenia\n\r", "log.txt", SDFlag);
 					writeUARTMsg("Ktos wyszedl");
 				}
 				else
@@ -1124,8 +1128,8 @@ int main(void)
 					(void)oledInfo(walk_time, liczbaOsob);
 					(void)makeLEDsColor(0);
 					(void)snprintf(buf_mmc, sizeof(buf_mmc), "%02d:%02d:%02d %02d.%02d.%04dr.", hour, minute, second, day, month, year);
-					save_log(buf_mmc, "log.txt");
-					save_log("\n\rKtos wszedl do pomieszczenia\n\r", "log.txt");
+					save_log(buf_mmc, "log.txt", SDFlag);
+					save_log("\n\rKtos wszedl do pomieszczenia\n\r", "log.txt", SDFlag);
 					writeUARTMsg("Ktos wszedl");
 				}
 				index = 0;
@@ -1147,8 +1151,8 @@ int main(void)
 		len = eeprom_write(pBuf, offset, EEPROMLen);
 		if ((int)len != (int)EEPROMLen){
 			(void)snprintf(buf_mmc, sizeof(buf_mmc), "%02d:%02d:%02d %02d.%02d.%04dr.", hour, minute, second, day, month, year);
-			save_log(buf_mmc, "log.txt");
-			save_log("\nBlad zapisu do EEPROM\n", "log.txt");
+			save_log(buf_mmc, "log.txt", SDFlag);
+			save_log("\nBlad zapisu do EEPROM\n", "log.txt", SDFlag);
 		}
 
 	}
