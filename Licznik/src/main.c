@@ -21,6 +21,7 @@
 #include "lpc17xx_gpio.h"
 #include "lpc17xx_ssp.h"
 #include "lpc17xx_timer.h"
+#include "lpc17xx_adc.h"
 
 //	REAL TIME CLOCK
 #include "lpc17xx_rtc.h"
@@ -40,6 +41,9 @@
 
 //	OLED
 #include "oled.h"
+
+//	TEMPERATURE
+#include "temp.h"
 
 
 
@@ -63,6 +67,7 @@
 
 
 static uint32_t msTicks = 0;
+static uint8_t tBuf[10]; //	Bufor do przechowywania temperatury
 static uint8_t buf[100]; //	Bufor do przechowania czasu wejscia
 static uint8_t pBuf[EEPROMLen]; //	Bufor do przechowania liczby ludzi
 
@@ -87,6 +92,7 @@ char U0Read(void);
 uint16_t GetTimeFromUART();
 void writeUARTMsg(char msg[]);
 static void init_ssp(void);
+static void init_adc(void);
 static void init_i2c(void);
 static int init_mmc(void);
 void save_log(const uint8_t log[], const uint8_t filename[], uint8_t SDFlag);
@@ -112,16 +118,26 @@ int main(void);
 
 void initUART0(void)
 {
-	LPC_PINCON->PINSEL0 |= (1<<4) | (1<<6); //Select TXD0 and RXD0 function for P0.2 & P0.3!
+	PINSEL_CFG_Type PinCfg;
+
+	/* Initialize UART3 pin connect */
+	PinCfg.Funcnum = 2;
+	PinCfg.Pinnum = 0;
+	PinCfg.Portnum = 0;
+	PINSEL_ConfigPin(&PinCfg);
+	PinCfg.Pinnum = 1;
+	PINSEL_ConfigPin(&PinCfg);
+
+//	LPC_PINCON->PINSEL0 |= (1<<4) | (1<<6); //Select TXD0 and RXD0 function for P0.2 & P0.3!
 	LPC_SC->PCONP |= 1<<3;
 
-	LPC_UART0->LCR = 3 | DLAB_BIT ; /* 8 bits, no Parity, 1 Stop bit & DLAB set to 1  */
-	LPC_UART0->DLL = 12;
-	LPC_UART0->DLM = 0;
+	LPC_UART3->LCR = 3 | DLAB_BIT ; /* 8 bits, no Parity, 1 Stop bit & DLAB set to 1  */
+	LPC_UART3->DLL = 12;
+	LPC_UART3->DLM = 0;
 
-	LPC_UART0->FCR |= Ux_FIFO_EN | Rx_FIFO_RST | Tx_FIFO_RST;
-	LPC_UART0->FDR = (MULVAL<<4) | DIVADDVAL; /* MULVAL=15(bits - 7:4) , DIVADDVAL=2(bits - 3:0)  */
-	LPC_UART0->LCR &= ~(DLAB_BIT);
+	LPC_UART3->FCR |= Ux_FIFO_EN | Rx_FIFO_RST | Tx_FIFO_RST;
+	LPC_UART3->FDR = (MULVAL<<4) | DIVADDVAL; /* MULVAL=15(bits - 7:4) , DIVADDVAL=2(bits - 3:0)  */
+	LPC_UART3->LCR &= ~(DLAB_BIT);
 }
 
 /*!
@@ -134,9 +150,9 @@ void initUART0(void)
 
 void U0Write(char txData)
 {
-	while(!(LPC_UART0->LSR & THRE)){}; //wait until THR is empty
+	while(!(LPC_UART3->LSR & THRE)){}; //wait until THR is empty
 	//now we can write to Tx FIFO
-	LPC_UART0->THR = txData;
+	LPC_UART3->THR = txData;
 }
 
 /*!
@@ -147,13 +163,13 @@ void U0Write(char txData)
 
 char U0Read(void)
 {
-	while(!(LPC_UART0->LSR & RDR)){
+	while(!(LPC_UART3->LSR & RDR)){
 		if (((GPIO_ReadValue(0) >> 4) & 0x01) == 0)
 		{
 			return 'n';
 		}
 	}; //wait until data arrives in Rx FIFO
-	return LPC_UART0->RBR;
+	return LPC_UART3->RBR;
 }
 
 
@@ -265,6 +281,38 @@ static void init_ssp(void)
 
 }
 
+/*!
+ *
+ *  @brief    Inicjalizacja ADC
+ *
+ */
+
+
+static void init_adc(void)
+{
+	PINSEL_CFG_Type PinCfg;
+
+	/*
+	 * Init ADC pin connect
+	 * AD0.0 on P0.23
+	 */
+	PinCfg.Funcnum = 1;
+	PinCfg.OpenDrain = 0;
+	PinCfg.Pinmode = 0;
+	PinCfg.Pinnum = 23;
+	PinCfg.Portnum = 0;
+	PINSEL_ConfigPin(&PinCfg);
+
+	/* Configuration for ADC :
+	 * 	Frequency at 0.2Mhz
+	 *  ADC channel 0, no Interrupt
+	 */
+	ADC_Init(LPC_ADC, 200000);
+	ADC_IntConfig(LPC_ADC,ADC_CHANNEL_0,DISABLE);
+	ADC_ChannelCmd(LPC_ADC,ADC_CHANNEL_0,ENABLE);
+
+}
+
 
 /*!
  *
@@ -290,7 +338,6 @@ static void init_i2c(void)
 	/* Enable I2C1 operation */
 	I2C_Cmd(LPC_I2C2, ENABLE);
 }
-
 
 
 /*!
@@ -832,6 +879,8 @@ int main(void)
 
 	uint8_t SDFlag = 0;
 
+	uint32_t temperature = 0;
+
 
 
 	//############################//
@@ -840,10 +889,17 @@ int main(void)
 
 	init_i2c();
 	init_ssp();
+	init_adc();
 	oled_init();
 	eeprom_init();
+
+	//Problem w UART
+	//Temperatura i UART0 dzialaja na tych samych pinach
+	//Inne UARTy nie chca dzialac z jakiegos powodu
+
 	initUART0();
 	init_speaker();
+	temp_init(&getTicks);
 
 	//############################//
 	//            OLED            //
@@ -975,6 +1031,15 @@ int main(void)
 
 		display_time();
 		oled_putString(1, 40, buf, OLED_COLOR_BLACK, OLED_COLOR_WHITE);//	PRINT DATA ON OLED
+
+
+		//############################//
+		//         TEMPERATURE        //
+		//############################//
+
+		temperature = temp_read();
+		intToString(temperature, tBuf, 10, 10);
+		writeUARTMsg(tBuf);
 
 		//############################//
 		//        BUTTON VALUE        //

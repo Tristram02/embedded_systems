@@ -8,12 +8,14 @@ src/main.o src/main.d: ../src/main.c \
  C:\Users\student\Documents\Licznik\Lib_MCU\inc/lpc17xx_gpio.h \
  C:\Users\student\Documents\Licznik\Lib_MCU\inc/lpc17xx_ssp.h \
  C:\Users\student\Documents\Licznik\Lib_MCU\inc/lpc17xx_timer.h \
+ C:\Users\student\Documents\Licznik\Lib_MCU\inc/lpc17xx_adc.h \
  C:\Users\student\Documents\Licznik\Lib_MCU\inc/lpc17xx_rtc.h \
  C:\Users\student\Documents\Licznik\Lib_EaBaseBoard\inc/pca9532.h \
  C:\Users\student\Documents\Licznik\Lib_EaBaseBoard\inc/rgb.h \
  ../src/../inc/diskio.h ../src/../inc/integer.h ../src/../inc/ff.h \
  ../src/../inc/ffconf.h ../src/../inc/eeprom.h \
- C:\Users\student\Documents\Licznik\Lib_EaBaseBoard\inc/oled.h
+ C:\Users\student\Documents\Licznik\Lib_EaBaseBoard\inc/oled.h \
+ C:\Users\student\Documents\Licznik\Lib_EaBaseBoard\inc/temp.h
 
 C:\Users\student\Documents\Licznik\Lib_MCU\inc/lpc17xx_pinsel.h:
 
@@ -33,6 +35,8 @@ C:\Users\student\Documents\Licznik\Lib_MCU\inc/lpc17xx_ssp.h:
 
 C:\Users\student\Documents\Licznik\Lib_MCU\inc/lpc17xx_timer.h:
 
+C:\Users\student\Documents\Licznik\Lib_MCU\inc/lpc17xx_adc.h:
+
 C:\Users\student\Documents\Licznik\Lib_MCU\inc/lpc17xx_rtc.h:
 
 C:\Users\student\Documents\Licznik\Lib_EaBaseBoard\inc/pca9532.h:
@@ -50,3 +54,5 @@ C:\Users\student\Documents\Licznik\Lib_EaBaseBoard\inc/rgb.h:
 ../src/../inc/eeprom.h:
 
 C:\Users\student\Documents\Licznik\Lib_EaBaseBoard\inc/oled.h:
+
+C:\Users\student\Documents\Licznik\Lib_EaBaseBoard\inc/temp.h:
