@@ -22,12 +22,12 @@
 #include "lpc17xx_ssp.h"
 #include "lpc17xx_timer.h"
 #include "lpc17xx_adc.h"
+#include "lpc17xx_uart.h"
 
 //	REAL TIME CLOCK
 #include "lpc17xx_rtc.h"
 
 #include "pca9532.h"
-//#include "lpc17xx_uart.h"
 
 //	KOLORY DIÓD
 #include "rgb.h"
@@ -67,7 +67,7 @@
 
 
 static uint32_t msTicks = 0;
-static uint8_t tBuf[10]; //	Bufor do przechowywania temperatury
+static uint8_t tBuf[20]; //	Bufor do przechowywania temperatury
 static uint8_t buf[100]; //	Bufor do przechowania czasu wejscia
 static uint8_t pBuf[EEPROMLen]; //	Bufor do przechowania liczby ludzi
 
@@ -118,26 +118,20 @@ int main(void);
 
 void initUART0(void)
 {
-	PINSEL_CFG_Type PinCfg;
 
-	/* Initialize UART3 pin connect */
-	PinCfg.Funcnum = 2;
-	PinCfg.Pinnum = 0;
-	PinCfg.Portnum = 0;
-	PINSEL_ConfigPin(&PinCfg);
-	PinCfg.Pinnum = 1;
-	PINSEL_ConfigPin(&PinCfg);
+	LPC_PINCON->PINSEL0 |= (1<<4) | (1<<6); //Select TXD0 and RXD0 function for P0.2 & P0.3!
 
-//	LPC_PINCON->PINSEL0 |= (1<<4) | (1<<6); //Select TXD0 and RXD0 function for P0.2 & P0.3!
-	LPC_SC->PCONP |= 1<<3;
+//	LPC_SC->PCONP |= 1<<3;
 
-	LPC_UART3->LCR = 3 | DLAB_BIT ; /* 8 bits, no Parity, 1 Stop bit & DLAB set to 1  */
-	LPC_UART3->DLL = 12;
-	LPC_UART3->DLM = 0;
+	LPC_UART0->LCR = 3 | DLAB_BIT ; /* 8 bits, no Parity, 1 Stop bit & DLAB set to 1  */
+	LPC_UART0->DLL = 12;
+	LPC_UART0->DLM = 0;
 
-	LPC_UART3->FCR |= Ux_FIFO_EN | Rx_FIFO_RST | Tx_FIFO_RST;
-	LPC_UART3->FDR = (MULVAL<<4) | DIVADDVAL; /* MULVAL=15(bits - 7:4) , DIVADDVAL=2(bits - 3:0)  */
-	LPC_UART3->LCR &= ~(DLAB_BIT);
+	LPC_UART0->FCR |= Ux_FIFO_EN | Rx_FIFO_RST | Tx_FIFO_RST;
+	LPC_UART0->FDR = (MULVAL<<4) | DIVADDVAL; /* MULVAL=15(bits - 7:4) , DIVADDVAL=2(bits - 3:0)  */
+	LPC_UART0->LCR &= ~(DLAB_BIT);
+
+
 }
 
 /*!
@@ -150,9 +144,9 @@ void initUART0(void)
 
 void U0Write(char txData)
 {
-	while(!(LPC_UART3->LSR & THRE)){}; //wait until THR is empty
+	while(!(LPC_UART0->LSR & THRE)){}; //wait until THR is empty
 	//now we can write to Tx FIFO
-	LPC_UART3->THR = txData;
+	LPC_UART0->THR = txData;
 }
 
 /*!
@@ -163,13 +157,13 @@ void U0Write(char txData)
 
 char U0Read(void)
 {
-	while(!(LPC_UART3->LSR & RDR)){
+	while(!(LPC_UART0->LSR & RDR)){
 		if (((GPIO_ReadValue(0) >> 4) & 0x01) == 0)
 		{
 			return 'n';
 		}
 	}; //wait until data arrives in Rx FIFO
-	return LPC_UART3->RBR;
+	return LPC_UART0->RBR;
 }
 
 
@@ -892,11 +886,6 @@ int main(void)
 	init_adc();
 	oled_init();
 	eeprom_init();
-
-	//Problem w UART
-	//Temperatura i UART0 dzialaja na tych samych pinach
-	//Inne UARTy nie chca dzialac z jakiegos powodu
-
 	initUART0();
 	init_speaker();
 	temp_init(&getTicks);
@@ -915,6 +904,7 @@ int main(void)
 	oled_putString(1, 50, "SW3 by pominac", OLED_COLOR_BLACK, OLED_COLOR_WHITE);
 
 	SDFlag = init_mmc();
+
 
 	//############################//
 	//      REAL TIME CLOCK       //
@@ -1037,9 +1027,22 @@ int main(void)
 		//         TEMPERATURE        //
 		//############################//
 
-		temperature = temp_read();
-		intToString(temperature, tBuf, 10, 10);
-		writeUARTMsg(tBuf);
+
+		if (abs(RTC_GetTime(LPC_RTC, RTC_TIMETYPE_MINUTE) - minute) >= 1)
+		{
+
+			LPC_PINCON->PINSEL0 = 0xaa8000;
+
+			temperature = temp_read();
+			(void)snprintf(tBuf, 20, "Temperatura: %2d\n", temperature);
+
+
+			LPC_PINCON->PINSEL0 |= (1<<4) | (1<<6);
+
+			writeUARTMsg(tBuf);
+
+			minute = RTC_GetTime(LPC_RTC, RTC_TIMETYPE_MINUTE);
+		}
 
 		//############################//
 		//        BUTTON VALUE        //
