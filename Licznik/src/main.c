@@ -42,9 +42,9 @@
 //	OLED
 #include "oled.h"
 
-//	TEMPERATURE
+//	TEMPERATURE | LIGHT | ACCELEROMETER
 #include "temp.h"
-
+#include "light.h"
 
 
 
@@ -874,6 +874,7 @@ int main(void)
 	uint8_t SDFlag = 0;
 
 	uint32_t temperature = 0;
+	uint32_t light = 0;
 
 
 
@@ -889,6 +890,10 @@ int main(void)
 	initUART0();
 	init_speaker();
 	temp_init(&getTicks);
+	light_init();
+
+	light_enable();
+	light_setRange(LIGHT_RANGE_4000);
 
 	//############################//
 	//            OLED            //
@@ -1024,18 +1029,41 @@ int main(void)
 
 
 		//############################//
-		//         TEMPERATURE        //
+		//     TEMPERATURE | LIGHT    //
 		//############################//
 
 
 		if (abs(RTC_GetTime(LPC_RTC, RTC_TIMETYPE_MINUTE) - minute) >= 1)
 		{
 
-			LPC_PINCON->PINSEL0 = 0xaa8000;
+			light = light_read();
+
+			if (light < 100)
+			{
+				writeUARTMsg("Pokoj slabo oswietlony\n\r");
+			}
+			else if(light < 300)
+			{
+				writeUARTMsg("Pokoj srednio oswietlony\n\r");
+			}
+			else if (light < 600)
+			{
+				writeUARTMsg("Pokoj dobrze oswietlony\n\r");
+			}
+			else if (light < 1000)
+			{
+				writeUARTMsg("Pokoj bardzo dobrze oswietlony\n\r");
+			}
+			else
+			{
+				writeUARTMsg("Jest az za jasno...\n\rChyba sie cos pali\n\r");
+			}
+
+
+			LPC_PINCON->PINSEL0 &= ~(1<<4) & ~(1<<6);
 
 			temperature = temp_read();
-			(void)snprintf(tBuf, 20, "Temperatura: %2d\n", temperature);
-
+			(void)snprintf(tBuf, 19, "Temperatura: %2d\n\r", temperature);
 
 			LPC_PINCON->PINSEL0 |= (1<<4) | (1<<6);
 
