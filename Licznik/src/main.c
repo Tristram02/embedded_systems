@@ -45,6 +45,7 @@
 //	TEMPERATURE | LIGHT | ACCELEROMETER
 #include "temp.h"
 #include "light.h"
+#include "acc.h"
 
 
 
@@ -876,6 +877,14 @@ int main(void)
 	uint32_t temperature = 0;
 	uint32_t light = 0;
 
+	int32_t xoff = 0;
+	int32_t yoff = 0;
+	int32_t zoff = 0;
+
+	int8_t x = 0;
+	int8_t y = 0;
+	int8_t z = 0;
+
 
 
 	//############################//
@@ -891,9 +900,18 @@ int main(void)
 	init_speaker();
 	temp_init(&getTicks);
 	light_init();
+	acc_init();
 
 	light_enable();
 	light_setRange(LIGHT_RANGE_4000);
+
+	 /*
+	 * Assume base board in zero-g position when reading first value.
+	 */
+	acc_read(&x, &y, &z);
+	xoff = 0-x;
+	yoff = 0-y;
+	zoff = 64-z;
 
 	//############################//
 	//            OLED            //
@@ -1033,8 +1051,24 @@ int main(void)
 		//############################//
 
 
-		if (abs(RTC_GetTime(LPC_RTC, RTC_TIMETYPE_MINUTE) - minute) >= 1)
+		if (abs(RTC_GetTime(LPC_RTC, RTC_TIMETYPE_SECOND) - second) >= 5)
 		{
+
+			acc_read(&x, &y, &z);
+			x = x+xoff;
+			y = y+yoff;
+			z = z+zoff;
+
+
+
+			LPC_PINCON->PINSEL0 &= ~(1<<4) & ~(1<<6);
+
+			temperature = temp_read();
+			(void)snprintf(tBuf, 19, "Temperatura: %2d\n\r", temperature);
+
+			LPC_PINCON->PINSEL0 |= (1<<4) | (1<<6);
+
+			writeUARTMsg("\0");
 
 			light = light_read();
 
@@ -1059,17 +1093,9 @@ int main(void)
 				writeUARTMsg("Jest az za jasno...\n\rChyba sie cos pali\n\r");
 			}
 
-
-			LPC_PINCON->PINSEL0 &= ~(1<<4) & ~(1<<6);
-
-			temperature = temp_read();
-			(void)snprintf(tBuf, 19, "Temperatura: %2d\n\r", temperature);
-
-			LPC_PINCON->PINSEL0 |= (1<<4) | (1<<6);
-
 			writeUARTMsg(tBuf);
 
-			minute = RTC_GetTime(LPC_RTC, RTC_TIMETYPE_MINUTE);
+			second = RTC_GetTime(LPC_RTC, RTC_TIMETYPE_SECOND);
 		}
 
 		//############################//
