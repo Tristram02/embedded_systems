@@ -34,12 +34,12 @@ typedef unsigned long	DWORD;
 //typedef enum { FALSE = 0, TRUE } BOOL;
 typedef unsigned int BOOL;
 
-#ifndef FALSE
-#define FALSE   (0)
+#ifndef _FALSE
+#define _FALSE   (0)
 #endif
 
-#ifndef TRUE
-#define TRUE    (1)
+#ifndef _TRUE
+#define _TRUE    (1)
 #endif
 
 #endif

@@ -14,5 +14,10 @@ C_DEPS :=
 
 # Every subdirectory with source files must be described here
 SUBDIRS := \
+lwip/src/api \
+lwip/src/arch \
+lwip/src/core \
+lwip/src/core/ipv4 \
+lwip/src/netif \
 src \
 

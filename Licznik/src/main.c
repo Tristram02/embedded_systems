@@ -47,6 +47,27 @@
 #include "light.h"
 #include "acc.h"
 
+//	ETHERNET
+#include "lwip/init.h"
+#include "lwip/opt.h"
+#include "lwip/sys.h"
+#include "lwip/memp.h"
+#include "lwip/tcpip.h"
+#include "lwip/ip_addr.h"
+#include "lwip/netif.h"
+#include "lwip/timers.h"
+#include "netif/etharp.h"
+
+#if LWIP_DHCP
+#include "lwip/dhcp.h"
+#endif
+
+//#include "board.h"
+//#include "lpc_phy.h"
+//#include "arch/lpc17xx_40xx_emac.h"
+//#include "arch/lpc_arch.h"
+//#include "httpd.h"
+
 
 
 #define NOTE_PIN_HIGH() GPIO_SetValue(0, (unsigned int)1<<26);
@@ -906,7 +927,8 @@ int main(void)
 	light_setRange(LIGHT_RANGE_4000);
 
 	 /*
-	 * Assume base board in zero-g position when reading first value.
+	 * Ustalamy wartosci w spoczynku
+	 * z w spoczynku powinnomiec wartosc 64, poniewaz jest to wartosc przyspieszenia ziemskiego
 	 */
 	acc_read(&x, &y, &z);
 	xoff = 0-x;
@@ -1094,6 +1116,19 @@ int main(void)
 			}
 
 			writeUARTMsg(tBuf);
+
+			if (abs(x) > 10)
+			{
+				writeUARTMsg("Czujniki poruszaja sie szybko w osi OX\n\r");
+			}
+			if (abs(y) > 10)
+			{
+				writeUARTMsg("Czujniki poruszaja sie szybko w osi OY\n\r");
+			}
+			if (z < 0)
+			{
+				writeUARTMsg("Czujniki pokonaly sile grawitacji!\n\r");
+			}
 
 			second = RTC_GetTime(LPC_RTC, RTC_TIMETYPE_SECOND);
 		}
