@@ -1,0 +1,7 @@
+lwip_fs.c:86:1:get_http_headers	40	static
+lwip_fs.c:164:5:GetHTTP_Header	16	static
+lwip_fs.c:170:17:fs_open_default	24	static
+lwip_fs.c:193:17:fs_open	16	static
+lwip_fs.c:240:6:fs_close	24	static
+lwip_fs.c:280:5:fs_bytes_left	16	static
+lwip_fs.c:285:5:fs_read	24	static

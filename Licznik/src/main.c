@@ -56,7 +56,7 @@
 #include "lwip/ip_addr.h"
 #include "lwip/netif.h"
 #include "lwip/timers.h"
-#include "netif/etharp.h"
+//#include "netif/etharp.h"
 
 #if LWIP_DHCP
 #include "lwip/dhcp.h"
@@ -65,6 +65,7 @@
 //#include "board.h"
 //#include "lpc_phy.h"
 //#include "arch/lpc17xx_40xx_emac.h"
+#include "../inc/enet.h"
 //#include "arch/lpc_arch.h"
 //#include "httpd.h"
 
@@ -88,6 +89,11 @@
 
 
 
+#define LPC_ENET_BASE             0x50000000
+#define LPC_ETHERNET              ((LPC_ENET_T             *) LPC_ENET_BASE)
+
+
+
 static uint32_t msTicks = 0;
 static uint8_t tBuf[20]; //	Bufor do przechowywania temperatury
 static uint8_t buf[100]; //	Bufor do przechowania czasu wejscia
@@ -106,6 +112,7 @@ FRESULT res;
 uint8_t * buzzer_sound = (uint8_t*)"A1_";
 uint8_t * erase_sound = (uint8_t*)"B3_";
 
+static struct netif lpc_netif;
 
 
 void initUART0(void);
@@ -857,6 +864,94 @@ void clearArray(uint8_t arr[])
 	}
 }
 
+void ethernetInit(void)
+{
+	ip_addr_t ipaddr, netmask, gw;
+
+	/* Initialize LWIP */
+	lwip_init();
+
+	LWIP_DEBUGF(LWIP_DBG_ON, ("Starting LWIP TCP echo server...\n"));
+
+	/* Static IP assignment */
+#if LWIP_DHCP
+	IP4_ADDR(&gw, 0, 0, 0, 0);
+	IP4_ADDR(&ipaddr, 0, 0, 0, 0);
+	IP4_ADDR(&netmask, 0, 0, 0, 0);
+#else
+	IP4_ADDR(&gw, 10, 1, 10, 1);
+	IP4_ADDR(&ipaddr, 10, 1, 10, 234);
+	IP4_ADDR(&netmask, 255, 255, 255, 0);
+	//APP_PRINT_IP(&ipaddr);
+#endif
+
+	/* Add netif interface for lpc17xx_8x */
+	netif_add(&lpc_netif, &ipaddr, &netmask, &gw, NULL, lpc_enetif_init,
+			  ethernet_input);
+	netif_set_default(&lpc_netif);
+	netif_set_up(&lpc_netif);
+
+#if LWIP_DHCP
+	dhcp_start(&lpc_netif);
+#endif
+
+	/* Initialize and start application */
+	httpd_init();
+
+	/* This could be done in the sysTick ISR, but may stay in IRQ context
+	   too long, so do this stuff with a background loop. */
+}
+
+void webserver()
+{
+	uint32_t physts;
+	static int prt_ip = 0;
+	lpc_enetif_input(&lpc_netif);
+
+
+	#if 0
+			while (lpc_rx_queue(&lpc_netif)) {}
+	#endif
+
+	/* Free TX buffers that are done sending */
+	lpc_tx_reclaim(&lpc_netif);
+
+	/* LWIP timers - ARP, DHCP, TCP, etc. */
+	sys_check_timeouts();
+
+	/* Call the PHY status update state machine once in a while
+	   to keep the link status up-to-date */
+	physts = lpcPHYStsPoll();
+
+	/* Only check for connection state when the PHY status has changed */
+	if (physts & PHY_LINK_CHANGED) {
+		if (physts & PHY_LINK_CONNECTED) {
+			prt_ip = 0;
+
+			/* Set interface speed and duplex */
+			if (physts & PHY_LINK_SPEED100) {
+				Chip_ENET_Set100Mbps(LPC_ETHERNET);
+				NETIF_INIT_SNMP(&lpc_netif, snmp_ifType_ethernet_csmacd, 100000000);
+			}
+			else {
+				Chip_ENET_Set10Mbps(LPC_ETHERNET);
+				NETIF_INIT_SNMP(&lpc_netif, snmp_ifType_ethernet_csmacd, 10000000);
+			}
+			if (physts & PHY_LINK_FULLDUPLX) {
+				Chip_ENET_SetFullDuplex(LPC_ETHERNET);
+			}
+			else {
+				Chip_ENET_SetHalfDuplex(LPC_ETHERNET);
+			}
+
+			netif_set_link_up(&lpc_netif);
+		}
+		else {
+			netif_set_link_down(&lpc_netif);
+		}
+	}
+}
+
 /*!
  *  @brief    Glowna funkcja programu
  */
@@ -906,6 +1001,10 @@ int main(void)
 	int8_t y = 0;
 	int8_t z = 0;
 
+	uint32_t physts;
+
+	static int prt_ip = 0;
+
 
 
 	//############################//
@@ -922,6 +1021,8 @@ int main(void)
 	temp_init(&getTicks);
 	light_init();
 	acc_init();
+
+	ethernetInit();
 
 	light_enable();
 	light_setRange(LIGHT_RANGE_4000);
@@ -1060,10 +1161,11 @@ int main(void)
 	//############################//
 	while (1) {
 
+		webserver();
+
 		//############################//
 		//            DATA            //
 		//############################//
-
 		display_time();
 		oled_putString(1, 40, buf, OLED_COLOR_BLACK, OLED_COLOR_WHITE);//	PRINT DATA ON OLED
 

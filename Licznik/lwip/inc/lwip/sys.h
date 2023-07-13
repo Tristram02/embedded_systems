@@ -237,6 +237,8 @@ u32_t sys_jiffies(void);
  * may be the same as sys_jiffies or at least based on it. */
 u32_t sys_now(void);
 
+
+
 /* Critical Region Protection */
 /* These functions must be implemented in the sys_arch.c file.
    In some implementations they can provide a more light-weight protection

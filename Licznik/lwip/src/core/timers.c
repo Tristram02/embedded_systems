@@ -244,7 +244,7 @@ void sys_timeouts_init(void)
 
 #if NO_SYS
   /* Initialise timestamp for sys_check_timeouts */
-  timeouts_last_time = sys_now();
+  timeouts_last_time = 0;
 #endif
 }
 
@@ -365,7 +365,7 @@ sys_check_timeouts(void)
     u8_t had_one;
     u32_t now;
 
-    now = sys_now();
+    now = 0;
     /* this cares for wraparounds */
     diff = now - timeouts_last_time;
     do

@@ -45,6 +45,10 @@
 
 #if !NO_SYS
 
+u32_t sys_now(void){
+	return 0;
+}
+
 #ifndef sys_msleep
 /**
  * Sleep for some ms. Timeouts are NOT processed while sleeping.

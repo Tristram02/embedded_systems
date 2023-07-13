@@ -36,8 +36,7 @@ src/main.o src/main.d: ../src/main.c \
  C:\Users\student\Documents\Licznik\Licznik\lwip\inc/lwip/err.h \
  C:\Users\student\Documents\Licznik\Licznik\lwip\inc/lwip/pbuf.h \
  C:\Users\student\Documents\Licznik\Licznik\lwip\inc/lwip/timers.h \
- C:\Users\student\Documents\Licznik\Licznik\lwip\inc/netif/etharp.h \
- C:\Users\student\Documents\Licznik\Licznik\lwip\inc\ipv4/lwip/ip.h
+ ../src/../inc/enet.h
 
 C:\Users\student\Desktop\embedded_systems-main\Lib_MCU\inc/lpc17xx_pinsel.h:
 
@@ -119,6 +118,4 @@ C:\Users\student\Documents\Licznik\Licznik\lwip\inc/lwip/pbuf.h:
 
 C:\Users\student\Documents\Licznik\Licznik\lwip\inc/lwip/timers.h:
 
-C:\Users\student\Documents\Licznik\Licznik\lwip\inc/netif/etharp.h:
-
-C:\Users\student\Documents\Licznik\Licznik\lwip\inc\ipv4/lwip/ip.h:
+../src/../inc/enet.h:

@@ -5,9 +5,6 @@
 			<provider id="com.crt.advproject.GCCBuildCommandParser">
 				<language id="org.eclipse.cdt.core.gcc">
 					<resource project-relative-path="lwip/src/core/raw.c">
-						<entry kind="includePath" name="/lpc_chip_175x_6x/inc">
-							<flag value="VALUE_WORKSPACE_PATH|RESOLVED"/>
-						</entry>
 						<entry kind="includePath" name="/lpc_board_nxp_lpcxpresso_1769/inc">
 							<flag value="VALUE_WORKSPACE_PATH|RESOLVED"/>
 						</entry>
@@ -34,37 +31,7 @@
 						<entry kind="macro" name="__NEWLIB__" value="1"/>
 						<entry kind="macro" name="__USE_CMSIS" value="CMSISv1p30_LPC17xx"/>
 					</resource>
-					<resource project-relative-path="lwip/src/api/netdb.c">
-						<entry kind="includePath" name="/lpc_chip_175x_6x/inc">
-							<flag value="VALUE_WORKSPACE_PATH|RESOLVED"/>
-						</entry>
-						<entry kind="includePath" name="/lpc_board_nxp_lpcxpresso_1769/inc">
-							<flag value="VALUE_WORKSPACE_PATH|RESOLVED"/>
-						</entry>
-						<entry kind="includePath" name="/${ProjName}/inc">
-							<flag value="VALUE_WORKSPACE_PATH"/>
-						</entry>
-						<entry kind="includePath" name="/${ProjName}/lwip/inc/ipv4">
-							<flag value="VALUE_WORKSPACE_PATH"/>
-						</entry>
-						<entry kind="includePath" name="/${ProjName}/lwip/inc">
-							<flag value="VALUE_WORKSPACE_PATH"/>
-						</entry>
-						<entry kind="includePath" name="/Lib_CMSISv1p30_LPC17xx/inc">
-							<flag value="VALUE_WORKSPACE_PATH|RESOLVED"/>
-						</entry>
-						<entry kind="includePath" name="/Lib_EaBaseBoard/inc">
-							<flag value="VALUE_WORKSPACE_PATH|RESOLVED"/>
-						</entry>
-						<entry kind="includePath" name="/Lib_MCU/inc">
-							<flag value="VALUE_WORKSPACE_PATH|RESOLVED"/>
-						</entry>
-						<entry kind="macro" name="DEBUG" value="1"/>
-						<entry kind="macro" name="__CODE_RED" value="1"/>
-						<entry kind="macro" name="__NEWLIB__" value="1"/>
-						<entry kind="macro" name="__USE_CMSIS" value="CMSISv1p30_LPC17xx"/>
-					</resource>
-					<resource project-relative-path="lwip/src/netif/etharp.c">
+					<resource project-relative-path="src/clock.c">
 						<entry kind="includePath" name="/lpc_chip_175x_6x/inc">
 							<flag value="VALUE_WORKSPACE_PATH|RESOLVED"/>
 						</entry>
@@ -95,9 +62,681 @@
 						<entry kind="macro" name="__USE_CMSIS" value="CMSISv1p30_LPC17xx"/>
 					</resource>
 					<resource project-relative-path="lwip/src/api/api_lib.c">
-						<entry kind="includePath" name="/lpc_chip_175x_6x/inc">
+						<entry kind="includePath" name="/lpc_board_nxp_lpcxpresso_1769/inc">
 							<flag value="VALUE_WORKSPACE_PATH|RESOLVED"/>
 						</entry>
+						<entry kind="includePath" name="/${ProjName}/inc">
+							<flag value="VALUE_WORKSPACE_PATH"/>
+						</entry>
+						<entry kind="includePath" name="/${ProjName}/lwip/inc/ipv4">
+							<flag value="VALUE_WORKSPACE_PATH"/>
+						</entry>
+						<entry kind="includePath" name="/${ProjName}/lwip/inc">
+							<flag value="VALUE_WORKSPACE_PATH"/>
+						</entry>
+						<entry kind="includePath" name="/Lib_CMSISv1p30_LPC17xx/inc">
+							<flag value="VALUE_WORKSPACE_PATH|RESOLVED"/>
+						</entry>
+						<entry kind="includePath" name="/Lib_EaBaseBoard/inc">
+							<flag value="VALUE_WORKSPACE_PATH|RESOLVED"/>
+						</entry>
+						<entry kind="includePath" name="/Lib_MCU/inc">
+							<flag value="VALUE_WORKSPACE_PATH|RESOLVED"/>
+						</entry>
+						<entry kind="macro" name="DEBUG" value="1"/>
+						<entry kind="macro" name="__CODE_RED" value="1"/>
+						<entry kind="macro" name="__NEWLIB__" value="1"/>
+						<entry kind="macro" name="__USE_CMSIS" value="CMSISv1p30_LPC17xx"/>
+					</resource>
+					<resource project-relative-path="lwip/src/core/dns.c">
+						<entry kind="includePath" name="/lpc_board_nxp_lpcxpresso_1769/inc">
+							<flag value="VALUE_WORKSPACE_PATH|RESOLVED"/>
+						</entry>
+						<entry kind="includePath" name="/${ProjName}/inc">
+							<flag value="VALUE_WORKSPACE_PATH"/>
+						</entry>
+						<entry kind="includePath" name="/${ProjName}/lwip/inc/ipv4">
+							<flag value="VALUE_WORKSPACE_PATH"/>
+						</entry>
+						<entry kind="includePath" name="/${ProjName}/lwip/inc">
+							<flag value="VALUE_WORKSPACE_PATH"/>
+						</entry>
+						<entry kind="includePath" name="/Lib_CMSISv1p30_LPC17xx/inc">
+							<flag value="VALUE_WORKSPACE_PATH|RESOLVED"/>
+						</entry>
+						<entry kind="includePath" name="/Lib_EaBaseBoard/inc">
+							<flag value="VALUE_WORKSPACE_PATH|RESOLVED"/>
+						</entry>
+						<entry kind="includePath" name="/Lib_MCU/inc">
+							<flag value="VALUE_WORKSPACE_PATH|RESOLVED"/>
+						</entry>
+						<entry kind="macro" name="DEBUG" value="1"/>
+						<entry kind="macro" name="__CODE_RED" value="1"/>
+						<entry kind="macro" name="__NEWLIB__" value="1"/>
+						<entry kind="macro" name="__USE_CMSIS" value="CMSISv1p30_LPC17xx"/>
+					</resource>
+					<resource project-relative-path="lwip/src/core/ipv4/icmp.c">
+						<entry kind="includePath" name="/lpc_board_nxp_lpcxpresso_1769/inc">
+							<flag value="VALUE_WORKSPACE_PATH|RESOLVED"/>
+						</entry>
+						<entry kind="includePath" name="/${ProjName}/inc">
+							<flag value="VALUE_WORKSPACE_PATH"/>
+						</entry>
+						<entry kind="includePath" name="/${ProjName}/lwip/inc/ipv4">
+							<flag value="VALUE_WORKSPACE_PATH"/>
+						</entry>
+						<entry kind="includePath" name="/${ProjName}/lwip/inc">
+							<flag value="VALUE_WORKSPACE_PATH"/>
+						</entry>
+						<entry kind="includePath" name="/Lib_CMSISv1p30_LPC17xx/inc">
+							<flag value="VALUE_WORKSPACE_PATH|RESOLVED"/>
+						</entry>
+						<entry kind="includePath" name="/Lib_EaBaseBoard/inc">
+							<flag value="VALUE_WORKSPACE_PATH|RESOLVED"/>
+						</entry>
+						<entry kind="includePath" name="/Lib_MCU/inc">
+							<flag value="VALUE_WORKSPACE_PATH|RESOLVED"/>
+						</entry>
+						<entry kind="macro" name="DEBUG" value="1"/>
+						<entry kind="macro" name="__CODE_RED" value="1"/>
+						<entry kind="macro" name="__NEWLIB__" value="1"/>
+						<entry kind="macro" name="__USE_CMSIS" value="CMSISv1p30_LPC17xx"/>
+					</resource>
+					<resource project-relative-path="lwip/src/core/ipv4/autoip.c">
+						<entry kind="includePath" name="/lpc_board_nxp_lpcxpresso_1769/inc">
+							<flag value="VALUE_WORKSPACE_PATH|RESOLVED"/>
+						</entry>
+						<entry kind="includePath" name="/${ProjName}/inc">
+							<flag value="VALUE_WORKSPACE_PATH"/>
+						</entry>
+						<entry kind="includePath" name="/${ProjName}/lwip/inc/ipv4">
+							<flag value="VALUE_WORKSPACE_PATH"/>
+						</entry>
+						<entry kind="includePath" name="/${ProjName}/lwip/inc">
+							<flag value="VALUE_WORKSPACE_PATH"/>
+						</entry>
+						<entry kind="includePath" name="/Lib_CMSISv1p30_LPC17xx/inc">
+							<flag value="VALUE_WORKSPACE_PATH|RESOLVED"/>
+						</entry>
+						<entry kind="includePath" name="/Lib_EaBaseBoard/inc">
+							<flag value="VALUE_WORKSPACE_PATH|RESOLVED"/>
+						</entry>
+						<entry kind="includePath" name="/Lib_MCU/inc">
+							<flag value="VALUE_WORKSPACE_PATH|RESOLVED"/>
+						</entry>
+						<entry kind="macro" name="DEBUG" value="1"/>
+						<entry kind="macro" name="__CODE_RED" value="1"/>
+						<entry kind="macro" name="__NEWLIB__" value="1"/>
+						<entry kind="macro" name="__USE_CMSIS" value="CMSISv1p30_LPC17xx"/>
+					</resource>
+					<resource project-relative-path="lwip/src/core/ipv4/ip_frag.c">
+						<entry kind="includePath" name="/lpc_board_nxp_lpcxpresso_1769/inc">
+							<flag value="VALUE_WORKSPACE_PATH|RESOLVED"/>
+						</entry>
+						<entry kind="includePath" name="/${ProjName}/inc">
+							<flag value="VALUE_WORKSPACE_PATH"/>
+						</entry>
+						<entry kind="includePath" name="/${ProjName}/lwip/inc/ipv4">
+							<flag value="VALUE_WORKSPACE_PATH"/>
+						</entry>
+						<entry kind="includePath" name="/${ProjName}/lwip/inc">
+							<flag value="VALUE_WORKSPACE_PATH"/>
+						</entry>
+						<entry kind="includePath" name="/Lib_CMSISv1p30_LPC17xx/inc">
+							<flag value="VALUE_WORKSPACE_PATH|RESOLVED"/>
+						</entry>
+						<entry kind="includePath" name="/Lib_EaBaseBoard/inc">
+							<flag value="VALUE_WORKSPACE_PATH|RESOLVED"/>
+						</entry>
+						<entry kind="includePath" name="/Lib_MCU/inc">
+							<flag value="VALUE_WORKSPACE_PATH|RESOLVED"/>
+						</entry>
+						<entry kind="macro" name="DEBUG" value="1"/>
+						<entry kind="macro" name="__CODE_RED" value="1"/>
+						<entry kind="macro" name="__NEWLIB__" value="1"/>
+						<entry kind="macro" name="__USE_CMSIS" value="CMSISv1p30_LPC17xx"/>
+					</resource>
+					<resource project-relative-path="lwip/src/core/tcp_in.c">
+						<entry kind="includePath" name="/lpc_board_nxp_lpcxpresso_1769/inc">
+							<flag value="VALUE_WORKSPACE_PATH|RESOLVED"/>
+						</entry>
+						<entry kind="includePath" name="/${ProjName}/inc">
+							<flag value="VALUE_WORKSPACE_PATH"/>
+						</entry>
+						<entry kind="includePath" name="/${ProjName}/lwip/inc/ipv4">
+							<flag value="VALUE_WORKSPACE_PATH"/>
+						</entry>
+						<entry kind="includePath" name="/${ProjName}/lwip/inc">
+							<flag value="VALUE_WORKSPACE_PATH"/>
+						</entry>
+						<entry kind="includePath" name="/Lib_CMSISv1p30_LPC17xx/inc">
+							<flag value="VALUE_WORKSPACE_PATH|RESOLVED"/>
+						</entry>
+						<entry kind="includePath" name="/Lib_EaBaseBoard/inc">
+							<flag value="VALUE_WORKSPACE_PATH|RESOLVED"/>
+						</entry>
+						<entry kind="includePath" name="/Lib_MCU/inc">
+							<flag value="VALUE_WORKSPACE_PATH|RESOLVED"/>
+						</entry>
+						<entry kind="macro" name="DEBUG" value="1"/>
+						<entry kind="macro" name="__CODE_RED" value="1"/>
+						<entry kind="macro" name="__NEWLIB__" value="1"/>
+						<entry kind="macro" name="__USE_CMSIS" value="CMSISv1p30_LPC17xx"/>
+					</resource>
+					<resource project-relative-path="lwip/src/api/netbuf.c">
+						<entry kind="includePath" name="/lpc_board_nxp_lpcxpresso_1769/inc">
+							<flag value="VALUE_WORKSPACE_PATH|RESOLVED"/>
+						</entry>
+						<entry kind="includePath" name="/${ProjName}/inc">
+							<flag value="VALUE_WORKSPACE_PATH"/>
+						</entry>
+						<entry kind="includePath" name="/${ProjName}/lwip/inc/ipv4">
+							<flag value="VALUE_WORKSPACE_PATH"/>
+						</entry>
+						<entry kind="includePath" name="/${ProjName}/lwip/inc">
+							<flag value="VALUE_WORKSPACE_PATH"/>
+						</entry>
+						<entry kind="includePath" name="/Lib_CMSISv1p30_LPC17xx/inc">
+							<flag value="VALUE_WORKSPACE_PATH|RESOLVED"/>
+						</entry>
+						<entry kind="includePath" name="/Lib_EaBaseBoard/inc">
+							<flag value="VALUE_WORKSPACE_PATH|RESOLVED"/>
+						</entry>
+						<entry kind="includePath" name="/Lib_MCU/inc">
+							<flag value="VALUE_WORKSPACE_PATH|RESOLVED"/>
+						</entry>
+						<entry kind="macro" name="DEBUG" value="1"/>
+						<entry kind="macro" name="__CODE_RED" value="1"/>
+						<entry kind="macro" name="__NEWLIB__" value="1"/>
+						<entry kind="macro" name="__USE_CMSIS" value="CMSISv1p30_LPC17xx"/>
+					</resource>
+					<resource project-relative-path="src/eeprom.c">
+						<entry kind="includePath" name="/lpc_board_nxp_lpcxpresso_1769/inc">
+							<flag value="VALUE_WORKSPACE_PATH|RESOLVED"/>
+						</entry>
+						<entry kind="includePath" name="/${ProjName}/inc">
+							<flag value="VALUE_WORKSPACE_PATH"/>
+						</entry>
+						<entry kind="includePath" name="/${ProjName}/lwip/inc/ipv4">
+							<flag value="VALUE_WORKSPACE_PATH"/>
+						</entry>
+						<entry kind="includePath" name="/${ProjName}/lwip/inc">
+							<flag value="VALUE_WORKSPACE_PATH"/>
+						</entry>
+						<entry kind="includePath" name="/Lib_CMSISv1p30_LPC17xx/inc">
+							<flag value="VALUE_WORKSPACE_PATH|RESOLVED"/>
+						</entry>
+						<entry kind="includePath" name="/Lib_EaBaseBoard/inc">
+							<flag value="VALUE_WORKSPACE_PATH|RESOLVED"/>
+						</entry>
+						<entry kind="includePath" name="/Lib_MCU/inc">
+							<flag value="VALUE_WORKSPACE_PATH|RESOLVED"/>
+						</entry>
+						<entry kind="macro" name="DEBUG" value="1"/>
+						<entry kind="macro" name="__CODE_RED" value="1"/>
+						<entry kind="macro" name="__NEWLIB__" value="1"/>
+						<entry kind="macro" name="__USE_CMSIS" value="CMSISv1p30_LPC17xx"/>
+					</resource>
+					<resource project-relative-path="src/main.c">
+						<entry kind="includePath" name="/lpc_board_nxp_lpcxpresso_1769/inc">
+							<flag value="VALUE_WORKSPACE_PATH|RESOLVED"/>
+						</entry>
+						<entry kind="includePath" name="/${ProjName}/inc">
+							<flag value="VALUE_WORKSPACE_PATH"/>
+						</entry>
+						<entry kind="includePath" name="/${ProjName}/lwip/inc/ipv4">
+							<flag value="VALUE_WORKSPACE_PATH"/>
+						</entry>
+						<entry kind="includePath" name="/${ProjName}/lwip/inc">
+							<flag value="VALUE_WORKSPACE_PATH"/>
+						</entry>
+						<entry kind="includePath" name="/Lib_CMSISv1p30_LPC17xx/inc">
+							<flag value="VALUE_WORKSPACE_PATH|RESOLVED"/>
+						</entry>
+						<entry kind="includePath" name="/Lib_EaBaseBoard/inc">
+							<flag value="VALUE_WORKSPACE_PATH|RESOLVED"/>
+						</entry>
+						<entry kind="includePath" name="/Lib_MCU/inc">
+							<flag value="VALUE_WORKSPACE_PATH|RESOLVED"/>
+						</entry>
+						<entry kind="macro" name="DEBUG" value="1"/>
+						<entry kind="macro" name="__CODE_RED" value="1"/>
+						<entry kind="macro" name="__NEWLIB__" value="1"/>
+						<entry kind="macro" name="__USE_CMSIS" value="CMSISv1p30_LPC17xx"/>
+					</resource>
+					<resource project-relative-path="lwip/src/core/def.c">
+						<entry kind="includePath" name="/lpc_board_nxp_lpcxpresso_1769/inc">
+							<flag value="VALUE_WORKSPACE_PATH|RESOLVED"/>
+						</entry>
+						<entry kind="includePath" name="/${ProjName}/inc">
+							<flag value="VALUE_WORKSPACE_PATH"/>
+						</entry>
+						<entry kind="includePath" name="/${ProjName}/lwip/inc/ipv4">
+							<flag value="VALUE_WORKSPACE_PATH"/>
+						</entry>
+						<entry kind="includePath" name="/${ProjName}/lwip/inc">
+							<flag value="VALUE_WORKSPACE_PATH"/>
+						</entry>
+						<entry kind="includePath" name="/Lib_CMSISv1p30_LPC17xx/inc">
+							<flag value="VALUE_WORKSPACE_PATH|RESOLVED"/>
+						</entry>
+						<entry kind="includePath" name="/Lib_EaBaseBoard/inc">
+							<flag value="VALUE_WORKSPACE_PATH|RESOLVED"/>
+						</entry>
+						<entry kind="includePath" name="/Lib_MCU/inc">
+							<flag value="VALUE_WORKSPACE_PATH|RESOLVED"/>
+						</entry>
+						<entry kind="macro" name="DEBUG" value="1"/>
+						<entry kind="macro" name="__CODE_RED" value="1"/>
+						<entry kind="macro" name="__NEWLIB__" value="1"/>
+						<entry kind="macro" name="__USE_CMSIS" value="CMSISv1p30_LPC17xx"/>
+					</resource>
+					<resource project-relative-path="src/lwip_fs.c">
+						<entry kind="includePath" name="/lpc_board_nxp_lpcxpresso_1769/inc">
+							<flag value="VALUE_WORKSPACE_PATH|RESOLVED"/>
+						</entry>
+						<entry kind="includePath" name="/${ProjName}/inc">
+							<flag value="VALUE_WORKSPACE_PATH"/>
+						</entry>
+						<entry kind="includePath" name="/${ProjName}/lwip/inc/ipv4">
+							<flag value="VALUE_WORKSPACE_PATH"/>
+						</entry>
+						<entry kind="includePath" name="/${ProjName}/lwip/inc">
+							<flag value="VALUE_WORKSPACE_PATH"/>
+						</entry>
+						<entry kind="includePath" name="/Lib_CMSISv1p30_LPC17xx/inc">
+							<flag value="VALUE_WORKSPACE_PATH|RESOLVED"/>
+						</entry>
+						<entry kind="includePath" name="/Lib_EaBaseBoard/inc">
+							<flag value="VALUE_WORKSPACE_PATH|RESOLVED"/>
+						</entry>
+						<entry kind="includePath" name="/Lib_MCU/inc">
+							<flag value="VALUE_WORKSPACE_PATH|RESOLVED"/>
+						</entry>
+						<entry kind="macro" name="DEBUG" value="1"/>
+						<entry kind="macro" name="__CODE_RED" value="1"/>
+						<entry kind="macro" name="__NEWLIB__" value="1"/>
+						<entry kind="macro" name="__USE_CMSIS" value="CMSISv1p30_LPC17xx"/>
+					</resource>
+					<resource project-relative-path="lwip/src/netif/ethernetif.c">
+						<entry kind="includePath" name="/lpc_board_nxp_lpcxpresso_1769/inc">
+							<flag value="VALUE_WORKSPACE_PATH|RESOLVED"/>
+						</entry>
+						<entry kind="includePath" name="/${ProjName}/inc">
+							<flag value="VALUE_WORKSPACE_PATH"/>
+						</entry>
+						<entry kind="includePath" name="/${ProjName}/lwip/inc/ipv4">
+							<flag value="VALUE_WORKSPACE_PATH"/>
+						</entry>
+						<entry kind="includePath" name="/${ProjName}/lwip/inc">
+							<flag value="VALUE_WORKSPACE_PATH"/>
+						</entry>
+						<entry kind="includePath" name="/Lib_CMSISv1p30_LPC17xx/inc">
+							<flag value="VALUE_WORKSPACE_PATH|RESOLVED"/>
+						</entry>
+						<entry kind="includePath" name="/Lib_EaBaseBoard/inc">
+							<flag value="VALUE_WORKSPACE_PATH|RESOLVED"/>
+						</entry>
+						<entry kind="includePath" name="/Lib_MCU/inc">
+							<flag value="VALUE_WORKSPACE_PATH|RESOLVED"/>
+						</entry>
+						<entry kind="macro" name="DEBUG" value="1"/>
+						<entry kind="macro" name="__CODE_RED" value="1"/>
+						<entry kind="macro" name="__NEWLIB__" value="1"/>
+						<entry kind="macro" name="__USE_CMSIS" value="CMSISv1p30_LPC17xx"/>
+					</resource>
+					<resource project-relative-path="lwip/src/api/sockets.c">
+						<entry kind="includePath" name="/lpc_board_nxp_lpcxpresso_1769/inc">
+							<flag value="VALUE_WORKSPACE_PATH|RESOLVED"/>
+						</entry>
+						<entry kind="includePath" name="/${ProjName}/inc">
+							<flag value="VALUE_WORKSPACE_PATH"/>
+						</entry>
+						<entry kind="includePath" name="/${ProjName}/lwip/inc/ipv4">
+							<flag value="VALUE_WORKSPACE_PATH"/>
+						</entry>
+						<entry kind="includePath" name="/${ProjName}/lwip/inc">
+							<flag value="VALUE_WORKSPACE_PATH"/>
+						</entry>
+						<entry kind="includePath" name="/Lib_CMSISv1p30_LPC17xx/inc">
+							<flag value="VALUE_WORKSPACE_PATH|RESOLVED"/>
+						</entry>
+						<entry kind="includePath" name="/Lib_EaBaseBoard/inc">
+							<flag value="VALUE_WORKSPACE_PATH|RESOLVED"/>
+						</entry>
+						<entry kind="includePath" name="/Lib_MCU/inc">
+							<flag value="VALUE_WORKSPACE_PATH|RESOLVED"/>
+						</entry>
+						<entry kind="macro" name="DEBUG" value="1"/>
+						<entry kind="macro" name="__CODE_RED" value="1"/>
+						<entry kind="macro" name="__NEWLIB__" value="1"/>
+						<entry kind="macro" name="__USE_CMSIS" value="CMSISv1p30_LPC17xx"/>
+					</resource>
+					<resource project-relative-path="lwip/src/core/stats.c">
+						<entry kind="includePath" name="/lpc_board_nxp_lpcxpresso_1769/inc">
+							<flag value="VALUE_WORKSPACE_PATH|RESOLVED"/>
+						</entry>
+						<entry kind="includePath" name="/${ProjName}/inc">
+							<flag value="VALUE_WORKSPACE_PATH"/>
+						</entry>
+						<entry kind="includePath" name="/${ProjName}/lwip/inc/ipv4">
+							<flag value="VALUE_WORKSPACE_PATH"/>
+						</entry>
+						<entry kind="includePath" name="/${ProjName}/lwip/inc">
+							<flag value="VALUE_WORKSPACE_PATH"/>
+						</entry>
+						<entry kind="includePath" name="/Lib_CMSISv1p30_LPC17xx/inc">
+							<flag value="VALUE_WORKSPACE_PATH|RESOLVED"/>
+						</entry>
+						<entry kind="includePath" name="/Lib_EaBaseBoard/inc">
+							<flag value="VALUE_WORKSPACE_PATH|RESOLVED"/>
+						</entry>
+						<entry kind="includePath" name="/Lib_MCU/inc">
+							<flag value="VALUE_WORKSPACE_PATH|RESOLVED"/>
+						</entry>
+						<entry kind="macro" name="DEBUG" value="1"/>
+						<entry kind="macro" name="__CODE_RED" value="1"/>
+						<entry kind="macro" name="__NEWLIB__" value="1"/>
+						<entry kind="macro" name="__USE_CMSIS" value="CMSISv1p30_LPC17xx"/>
+					</resource>
+					<resource project-relative-path="lwip/src/core/ipv4/ip_addr.c">
+						<entry kind="includePath" name="/lpc_board_nxp_lpcxpresso_1769/inc">
+							<flag value="VALUE_WORKSPACE_PATH|RESOLVED"/>
+						</entry>
+						<entry kind="includePath" name="/${ProjName}/inc">
+							<flag value="VALUE_WORKSPACE_PATH"/>
+						</entry>
+						<entry kind="includePath" name="/${ProjName}/lwip/inc/ipv4">
+							<flag value="VALUE_WORKSPACE_PATH"/>
+						</entry>
+						<entry kind="includePath" name="/${ProjName}/lwip/inc">
+							<flag value="VALUE_WORKSPACE_PATH"/>
+						</entry>
+						<entry kind="includePath" name="/Lib_CMSISv1p30_LPC17xx/inc">
+							<flag value="VALUE_WORKSPACE_PATH|RESOLVED"/>
+						</entry>
+						<entry kind="includePath" name="/Lib_EaBaseBoard/inc">
+							<flag value="VALUE_WORKSPACE_PATH|RESOLVED"/>
+						</entry>
+						<entry kind="includePath" name="/Lib_MCU/inc">
+							<flag value="VALUE_WORKSPACE_PATH|RESOLVED"/>
+						</entry>
+						<entry kind="macro" name="DEBUG" value="1"/>
+						<entry kind="macro" name="__CODE_RED" value="1"/>
+						<entry kind="macro" name="__NEWLIB__" value="1"/>
+						<entry kind="macro" name="__USE_CMSIS" value="CMSISv1p30_LPC17xx"/>
+					</resource>
+					<resource project-relative-path="src/ethernet.c">
+						<entry kind="includePath" name="/lpc_board_nxp_lpcxpresso_1769/inc">
+							<flag value="VALUE_WORKSPACE_PATH|RESOLVED"/>
+						</entry>
+						<entry kind="includePath" name="/${ProjName}/inc">
+							<flag value="VALUE_WORKSPACE_PATH"/>
+						</entry>
+						<entry kind="includePath" name="/${ProjName}/lwip/inc/ipv4">
+							<flag value="VALUE_WORKSPACE_PATH"/>
+						</entry>
+						<entry kind="includePath" name="/${ProjName}/lwip/inc">
+							<flag value="VALUE_WORKSPACE_PATH"/>
+						</entry>
+						<entry kind="includePath" name="/Lib_CMSISv1p30_LPC17xx/inc">
+							<flag value="VALUE_WORKSPACE_PATH|RESOLVED"/>
+						</entry>
+						<entry kind="includePath" name="/Lib_EaBaseBoard/inc">
+							<flag value="VALUE_WORKSPACE_PATH|RESOLVED"/>
+						</entry>
+						<entry kind="includePath" name="/Lib_MCU/inc">
+							<flag value="VALUE_WORKSPACE_PATH|RESOLVED"/>
+						</entry>
+						<entry kind="macro" name="DEBUG" value="1"/>
+						<entry kind="macro" name="__CODE_RED" value="1"/>
+						<entry kind="macro" name="__NEWLIB__" value="1"/>
+						<entry kind="macro" name="__USE_CMSIS" value="CMSISv1p30_LPC17xx"/>
+					</resource>
+					<resource project-relative-path="lwip/src/api/netifapi.c">
+						<entry kind="includePath" name="/lpc_board_nxp_lpcxpresso_1769/inc">
+							<flag value="VALUE_WORKSPACE_PATH|RESOLVED"/>
+						</entry>
+						<entry kind="includePath" name="/${ProjName}/inc">
+							<flag value="VALUE_WORKSPACE_PATH"/>
+						</entry>
+						<entry kind="includePath" name="/${ProjName}/lwip/inc/ipv4">
+							<flag value="VALUE_WORKSPACE_PATH"/>
+						</entry>
+						<entry kind="includePath" name="/${ProjName}/lwip/inc">
+							<flag value="VALUE_WORKSPACE_PATH"/>
+						</entry>
+						<entry kind="includePath" name="/Lib_CMSISv1p30_LPC17xx/inc">
+							<flag value="VALUE_WORKSPACE_PATH|RESOLVED"/>
+						</entry>
+						<entry kind="includePath" name="/Lib_EaBaseBoard/inc">
+							<flag value="VALUE_WORKSPACE_PATH|RESOLVED"/>
+						</entry>
+						<entry kind="includePath" name="/Lib_MCU/inc">
+							<flag value="VALUE_WORKSPACE_PATH|RESOLVED"/>
+						</entry>
+						<entry kind="macro" name="DEBUG" value="1"/>
+						<entry kind="macro" name="__CODE_RED" value="1"/>
+						<entry kind="macro" name="__NEWLIB__" value="1"/>
+						<entry kind="macro" name="__USE_CMSIS" value="CMSISv1p30_LPC17xx"/>
+					</resource>
+					<resource project-relative-path="lwip/src/api/api_msg.c">
+						<entry kind="includePath" name="/lpc_board_nxp_lpcxpresso_1769/inc">
+							<flag value="VALUE_WORKSPACE_PATH|RESOLVED"/>
+						</entry>
+						<entry kind="includePath" name="/${ProjName}/inc">
+							<flag value="VALUE_WORKSPACE_PATH"/>
+						</entry>
+						<entry kind="includePath" name="/${ProjName}/lwip/inc/ipv4">
+							<flag value="VALUE_WORKSPACE_PATH"/>
+						</entry>
+						<entry kind="includePath" name="/${ProjName}/lwip/inc">
+							<flag value="VALUE_WORKSPACE_PATH"/>
+						</entry>
+						<entry kind="includePath" name="/Lib_CMSISv1p30_LPC17xx/inc">
+							<flag value="VALUE_WORKSPACE_PATH|RESOLVED"/>
+						</entry>
+						<entry kind="includePath" name="/Lib_EaBaseBoard/inc">
+							<flag value="VALUE_WORKSPACE_PATH|RESOLVED"/>
+						</entry>
+						<entry kind="includePath" name="/Lib_MCU/inc">
+							<flag value="VALUE_WORKSPACE_PATH|RESOLVED"/>
+						</entry>
+						<entry kind="macro" name="DEBUG" value="1"/>
+						<entry kind="macro" name="__CODE_RED" value="1"/>
+						<entry kind="macro" name="__NEWLIB__" value="1"/>
+						<entry kind="macro" name="__USE_CMSIS" value="CMSISv1p30_LPC17xx"/>
+					</resource>
+					<resource project-relative-path="lwip/src/core/timers.c">
+						<entry kind="includePath" name="/lpc_board_nxp_lpcxpresso_1769/inc">
+							<flag value="VALUE_WORKSPACE_PATH|RESOLVED"/>
+						</entry>
+						<entry kind="includePath" name="/${ProjName}/inc">
+							<flag value="VALUE_WORKSPACE_PATH"/>
+						</entry>
+						<entry kind="includePath" name="/${ProjName}/lwip/inc/ipv4">
+							<flag value="VALUE_WORKSPACE_PATH"/>
+						</entry>
+						<entry kind="includePath" name="/${ProjName}/lwip/inc">
+							<flag value="VALUE_WORKSPACE_PATH"/>
+						</entry>
+						<entry kind="includePath" name="/Lib_CMSISv1p30_LPC17xx/inc">
+							<flag value="VALUE_WORKSPACE_PATH|RESOLVED"/>
+						</entry>
+						<entry kind="includePath" name="/Lib_EaBaseBoard/inc">
+							<flag value="VALUE_WORKSPACE_PATH|RESOLVED"/>
+						</entry>
+						<entry kind="includePath" name="/Lib_MCU/inc">
+							<flag value="VALUE_WORKSPACE_PATH|RESOLVED"/>
+						</entry>
+						<entry kind="macro" name="DEBUG" value="1"/>
+						<entry kind="macro" name="__CODE_RED" value="1"/>
+						<entry kind="macro" name="__NEWLIB__" value="1"/>
+						<entry kind="macro" name="__USE_CMSIS" value="CMSISv1p30_LPC17xx"/>
+					</resource>
+					<resource project-relative-path="lwip/src/arch/lpc17xx_40xx_systick_arch.c">
+						<entry kind="includePath" name="/lpc_board_nxp_lpcxpresso_1769/inc">
+							<flag value="VALUE_WORKSPACE_PATH|RESOLVED"/>
+						</entry>
+						<entry kind="includePath" name="/${ProjName}/inc">
+							<flag value="VALUE_WORKSPACE_PATH"/>
+						</entry>
+						<entry kind="includePath" name="/${ProjName}/lwip/inc/ipv4">
+							<flag value="VALUE_WORKSPACE_PATH"/>
+						</entry>
+						<entry kind="includePath" name="/${ProjName}/lwip/inc">
+							<flag value="VALUE_WORKSPACE_PATH"/>
+						</entry>
+						<entry kind="includePath" name="/Lib_CMSISv1p30_LPC17xx/inc">
+							<flag value="VALUE_WORKSPACE_PATH|RESOLVED"/>
+						</entry>
+						<entry kind="includePath" name="/Lib_EaBaseBoard/inc">
+							<flag value="VALUE_WORKSPACE_PATH|RESOLVED"/>
+						</entry>
+						<entry kind="includePath" name="/Lib_MCU/inc">
+							<flag value="VALUE_WORKSPACE_PATH|RESOLVED"/>
+						</entry>
+						<entry kind="macro" name="DEBUG" value="1"/>
+						<entry kind="macro" name="__CODE_RED" value="1"/>
+						<entry kind="macro" name="__NEWLIB__" value="1"/>
+						<entry kind="macro" name="__USE_CMSIS" value="CMSISv1p30_LPC17xx"/>
+					</resource>
+					<resource project-relative-path="lwip/src/core/memp.c">
+						<entry kind="includePath" name="/lpc_board_nxp_lpcxpresso_1769/inc">
+							<flag value="VALUE_WORKSPACE_PATH|RESOLVED"/>
+						</entry>
+						<entry kind="includePath" name="/${ProjName}/inc">
+							<flag value="VALUE_WORKSPACE_PATH"/>
+						</entry>
+						<entry kind="includePath" name="/${ProjName}/lwip/inc/ipv4">
+							<flag value="VALUE_WORKSPACE_PATH"/>
+						</entry>
+						<entry kind="includePath" name="/${ProjName}/lwip/inc">
+							<flag value="VALUE_WORKSPACE_PATH"/>
+						</entry>
+						<entry kind="includePath" name="/Lib_CMSISv1p30_LPC17xx/inc">
+							<flag value="VALUE_WORKSPACE_PATH|RESOLVED"/>
+						</entry>
+						<entry kind="includePath" name="/Lib_EaBaseBoard/inc">
+							<flag value="VALUE_WORKSPACE_PATH|RESOLVED"/>
+						</entry>
+						<entry kind="includePath" name="/Lib_MCU/inc">
+							<flag value="VALUE_WORKSPACE_PATH|RESOLVED"/>
+						</entry>
+						<entry kind="macro" name="DEBUG" value="1"/>
+						<entry kind="macro" name="__CODE_RED" value="1"/>
+						<entry kind="macro" name="__NEWLIB__" value="1"/>
+						<entry kind="macro" name="__USE_CMSIS" value="CMSISv1p30_LPC17xx"/>
+					</resource>
+					<resource project-relative-path="lwip/src/core/dhcp.c">
+						<entry kind="includePath" name="/lpc_board_nxp_lpcxpresso_1769/inc">
+							<flag value="VALUE_WORKSPACE_PATH|RESOLVED"/>
+						</entry>
+						<entry kind="includePath" name="/${ProjName}/inc">
+							<flag value="VALUE_WORKSPACE_PATH"/>
+						</entry>
+						<entry kind="includePath" name="/${ProjName}/lwip/inc/ipv4">
+							<flag value="VALUE_WORKSPACE_PATH"/>
+						</entry>
+						<entry kind="includePath" name="/${ProjName}/lwip/inc">
+							<flag value="VALUE_WORKSPACE_PATH"/>
+						</entry>
+						<entry kind="includePath" name="/Lib_CMSISv1p30_LPC17xx/inc">
+							<flag value="VALUE_WORKSPACE_PATH|RESOLVED"/>
+						</entry>
+						<entry kind="includePath" name="/Lib_EaBaseBoard/inc">
+							<flag value="VALUE_WORKSPACE_PATH|RESOLVED"/>
+						</entry>
+						<entry kind="includePath" name="/Lib_MCU/inc">
+							<flag value="VALUE_WORKSPACE_PATH|RESOLVED"/>
+						</entry>
+						<entry kind="macro" name="DEBUG" value="1"/>
+						<entry kind="macro" name="__CODE_RED" value="1"/>
+						<entry kind="macro" name="__NEWLIB__" value="1"/>
+						<entry kind="macro" name="__USE_CMSIS" value="CMSISv1p30_LPC17xx"/>
+					</resource>
+					<resource project-relative-path="lwip/src/core/netif.c">
+						<entry kind="includePath" name="/lpc_board_nxp_lpcxpresso_1769/inc">
+							<flag value="VALUE_WORKSPACE_PATH|RESOLVED"/>
+						</entry>
+						<entry kind="includePath" name="/${ProjName}/inc">
+							<flag value="VALUE_WORKSPACE_PATH"/>
+						</entry>
+						<entry kind="includePath" name="/${ProjName}/lwip/inc/ipv4">
+							<flag value="VALUE_WORKSPACE_PATH"/>
+						</entry>
+						<entry kind="includePath" name="/${ProjName}/lwip/inc">
+							<flag value="VALUE_WORKSPACE_PATH"/>
+						</entry>
+						<entry kind="includePath" name="/Lib_CMSISv1p30_LPC17xx/inc">
+							<flag value="VALUE_WORKSPACE_PATH|RESOLVED"/>
+						</entry>
+						<entry kind="includePath" name="/Lib_EaBaseBoard/inc">
+							<flag value="VALUE_WORKSPACE_PATH|RESOLVED"/>
+						</entry>
+						<entry kind="includePath" name="/Lib_MCU/inc">
+							<flag value="VALUE_WORKSPACE_PATH|RESOLVED"/>
+						</entry>
+						<entry kind="macro" name="DEBUG" value="1"/>
+						<entry kind="macro" name="__CODE_RED" value="1"/>
+						<entry kind="macro" name="__NEWLIB__" value="1"/>
+						<entry kind="macro" name="__USE_CMSIS" value="CMSISv1p30_LPC17xx"/>
+					</resource>
+					<resource project-relative-path="lwip/src/api/netdb.c">
+						<entry kind="includePath" name="/lpc_board_nxp_lpcxpresso_1769/inc">
+							<flag value="VALUE_WORKSPACE_PATH|RESOLVED"/>
+						</entry>
+						<entry kind="includePath" name="/${ProjName}/inc">
+							<flag value="VALUE_WORKSPACE_PATH"/>
+						</entry>
+						<entry kind="includePath" name="/${ProjName}/lwip/inc/ipv4">
+							<flag value="VALUE_WORKSPACE_PATH"/>
+						</entry>
+						<entry kind="includePath" name="/${ProjName}/lwip/inc">
+							<flag value="VALUE_WORKSPACE_PATH"/>
+						</entry>
+						<entry kind="includePath" name="/Lib_CMSISv1p30_LPC17xx/inc">
+							<flag value="VALUE_WORKSPACE_PATH|RESOLVED"/>
+						</entry>
+						<entry kind="includePath" name="/Lib_EaBaseBoard/inc">
+							<flag value="VALUE_WORKSPACE_PATH|RESOLVED"/>
+						</entry>
+						<entry kind="includePath" name="/Lib_MCU/inc">
+							<flag value="VALUE_WORKSPACE_PATH|RESOLVED"/>
+						</entry>
+						<entry kind="macro" name="DEBUG" value="1"/>
+						<entry kind="macro" name="__CODE_RED" value="1"/>
+						<entry kind="macro" name="__NEWLIB__" value="1"/>
+						<entry kind="macro" name="__USE_CMSIS" value="CMSISv1p30_LPC17xx"/>
+					</resource>
+					<resource project-relative-path="lwip/src/core/sys.c">
+						<entry kind="includePath" name="/lpc_board_nxp_lpcxpresso_1769/inc">
+							<flag value="VALUE_WORKSPACE_PATH|RESOLVED"/>
+						</entry>
+						<entry kind="includePath" name="/${ProjName}/inc">
+							<flag value="VALUE_WORKSPACE_PATH"/>
+						</entry>
+						<entry kind="includePath" name="/${ProjName}/lwip/inc/ipv4">
+							<flag value="VALUE_WORKSPACE_PATH"/>
+						</entry>
+						<entry kind="includePath" name="/${ProjName}/lwip/inc">
+							<flag value="VALUE_WORKSPACE_PATH"/>
+						</entry>
+						<entry kind="includePath" name="/Lib_CMSISv1p30_LPC17xx/inc">
+							<flag value="VALUE_WORKSPACE_PATH|RESOLVED"/>
+						</entry>
+						<entry kind="includePath" name="/Lib_EaBaseBoard/inc">
+							<flag value="VALUE_WORKSPACE_PATH|RESOLVED"/>
+						</entry>
+						<entry kind="includePath" name="/Lib_MCU/inc">
+							<flag value="VALUE_WORKSPACE_PATH|RESOLVED"/>
+						</entry>
+						<entry kind="macro" name="DEBUG" value="1"/>
+						<entry kind="macro" name="__CODE_RED" value="1"/>
+						<entry kind="macro" name="__NEWLIB__" value="1"/>
+						<entry kind="macro" name="__USE_CMSIS" value="CMSISv1p30_LPC17xx"/>
+					</resource>
+					<resource project-relative-path="lwip/src/netif/etharp.c">
 						<entry kind="includePath" name="/lpc_board_nxp_lpcxpresso_1769/inc">
 							<flag value="VALUE_WORKSPACE_PATH|RESOLVED"/>
 						</entry>
@@ -155,39 +794,6 @@
 						<entry kind="macro" name="__USE_CMSIS" value="CMSISv1p30_LPC17xx"/>
 					</resource>
 					<resource project-relative-path="lwip/src/core/ipv4/inet_chksum.c">
-						<entry kind="includePath" name="/lpc_chip_175x_6x/inc">
-							<flag value="VALUE_WORKSPACE_PATH|RESOLVED"/>
-						</entry>
-						<entry kind="includePath" name="/lpc_board_nxp_lpcxpresso_1769/inc">
-							<flag value="VALUE_WORKSPACE_PATH|RESOLVED"/>
-						</entry>
-						<entry kind="includePath" name="/${ProjName}/inc">
-							<flag value="VALUE_WORKSPACE_PATH"/>
-						</entry>
-						<entry kind="includePath" name="/${ProjName}/lwip/inc/ipv4">
-							<flag value="VALUE_WORKSPACE_PATH"/>
-						</entry>
-						<entry kind="includePath" name="/${ProjName}/lwip/inc">
-							<flag value="VALUE_WORKSPACE_PATH"/>
-						</entry>
-						<entry kind="includePath" name="/Lib_CMSISv1p30_LPC17xx/inc">
-							<flag value="VALUE_WORKSPACE_PATH|RESOLVED"/>
-						</entry>
-						<entry kind="includePath" name="/Lib_EaBaseBoard/inc">
-							<flag value="VALUE_WORKSPACE_PATH|RESOLVED"/>
-						</entry>
-						<entry kind="includePath" name="/Lib_MCU/inc">
-							<flag value="VALUE_WORKSPACE_PATH|RESOLVED"/>
-						</entry>
-						<entry kind="macro" name="DEBUG" value="1"/>
-						<entry kind="macro" name="__CODE_RED" value="1"/>
-						<entry kind="macro" name="__NEWLIB__" value="1"/>
-						<entry kind="macro" name="__USE_CMSIS" value="CMSISv1p30_LPC17xx"/>
-					</resource>
-					<resource project-relative-path="lwip/src/core/dns.c">
-						<entry kind="includePath" name="/lpc_chip_175x_6x/inc">
-							<flag value="VALUE_WORKSPACE_PATH|RESOLVED"/>
-						</entry>
 						<entry kind="includePath" name="/lpc_board_nxp_lpcxpresso_1769/inc">
 							<flag value="VALUE_WORKSPACE_PATH|RESOLVED"/>
 						</entry>
@@ -215,9 +821,6 @@
 						<entry kind="macro" name="__USE_CMSIS" value="CMSISv1p30_LPC17xx"/>
 					</resource>
 					<resource project-relative-path="lwip/src/core/mem.c">
-						<entry kind="includePath" name="/lpc_chip_175x_6x/inc">
-							<flag value="VALUE_WORKSPACE_PATH|RESOLVED"/>
-						</entry>
 						<entry kind="includePath" name="/lpc_board_nxp_lpcxpresso_1769/inc">
 							<flag value="VALUE_WORKSPACE_PATH|RESOLVED"/>
 						</entry>
@@ -245,9 +848,6 @@
 						<entry kind="macro" name="__USE_CMSIS" value="CMSISv1p30_LPC17xx"/>
 					</resource>
 					<resource project-relative-path="lwip/src/core/tcp_out.c">
-						<entry kind="includePath" name="/lpc_chip_175x_6x/inc">
-							<flag value="VALUE_WORKSPACE_PATH|RESOLVED"/>
-						</entry>
 						<entry kind="includePath" name="/lpc_board_nxp_lpcxpresso_1769/inc">
 							<flag value="VALUE_WORKSPACE_PATH|RESOLVED"/>
 						</entry>
@@ -275,9 +875,6 @@
 						<entry kind="macro" name="__USE_CMSIS" value="CMSISv1p30_LPC17xx"/>
 					</resource>
 					<resource project-relative-path="lwip/src/api/err.c">
-						<entry kind="includePath" name="/lpc_chip_175x_6x/inc">
-							<flag value="VALUE_WORKSPACE_PATH|RESOLVED"/>
-						</entry>
 						<entry kind="includePath" name="/lpc_board_nxp_lpcxpresso_1769/inc">
 							<flag value="VALUE_WORKSPACE_PATH|RESOLVED"/>
 						</entry>
@@ -305,69 +902,6 @@
 						<entry kind="macro" name="__USE_CMSIS" value="CMSISv1p30_LPC17xx"/>
 					</resource>
 					<resource project-relative-path="lwip/src/api/tcpip.c">
-						<entry kind="includePath" name="/lpc_chip_175x_6x/inc">
-							<flag value="VALUE_WORKSPACE_PATH|RESOLVED"/>
-						</entry>
-						<entry kind="includePath" name="/lpc_board_nxp_lpcxpresso_1769/inc">
-							<flag value="VALUE_WORKSPACE_PATH|RESOLVED"/>
-						</entry>
-						<entry kind="includePath" name="/${ProjName}/inc">
-							<flag value="VALUE_WORKSPACE_PATH"/>
-						</entry>
-						<entry kind="includePath" name="/${ProjName}/lwip/inc/ipv4">
-							<flag value="VALUE_WORKSPACE_PATH"/>
-						</entry>
-						<entry kind="includePath" name="/${ProjName}/lwip/inc">
-							<flag value="VALUE_WORKSPACE_PATH"/>
-						</entry>
-						<entry kind="includePath" name="/Lib_CMSISv1p30_LPC17xx/inc">
-							<flag value="VALUE_WORKSPACE_PATH|RESOLVED"/>
-						</entry>
-						<entry kind="includePath" name="/Lib_EaBaseBoard/inc">
-							<flag value="VALUE_WORKSPACE_PATH|RESOLVED"/>
-						</entry>
-						<entry kind="includePath" name="/Lib_MCU/inc">
-							<flag value="VALUE_WORKSPACE_PATH|RESOLVED"/>
-						</entry>
-						<entry kind="macro" name="DEBUG" value="1"/>
-						<entry kind="macro" name="__CODE_RED" value="1"/>
-						<entry kind="macro" name="__NEWLIB__" value="1"/>
-						<entry kind="macro" name="__USE_CMSIS" value="CMSISv1p30_LPC17xx"/>
-					</resource>
-					<resource project-relative-path="lwip/src/core/ipv4/icmp.c">
-						<entry kind="includePath" name="/lpc_chip_175x_6x/inc">
-							<flag value="VALUE_WORKSPACE_PATH|RESOLVED"/>
-						</entry>
-						<entry kind="includePath" name="/lpc_board_nxp_lpcxpresso_1769/inc">
-							<flag value="VALUE_WORKSPACE_PATH|RESOLVED"/>
-						</entry>
-						<entry kind="includePath" name="/${ProjName}/inc">
-							<flag value="VALUE_WORKSPACE_PATH"/>
-						</entry>
-						<entry kind="includePath" name="/${ProjName}/lwip/inc/ipv4">
-							<flag value="VALUE_WORKSPACE_PATH"/>
-						</entry>
-						<entry kind="includePath" name="/${ProjName}/lwip/inc">
-							<flag value="VALUE_WORKSPACE_PATH"/>
-						</entry>
-						<entry kind="includePath" name="/Lib_CMSISv1p30_LPC17xx/inc">
-							<flag value="VALUE_WORKSPACE_PATH|RESOLVED"/>
-						</entry>
-						<entry kind="includePath" name="/Lib_EaBaseBoard/inc">
-							<flag value="VALUE_WORKSPACE_PATH|RESOLVED"/>
-						</entry>
-						<entry kind="includePath" name="/Lib_MCU/inc">
-							<flag value="VALUE_WORKSPACE_PATH|RESOLVED"/>
-						</entry>
-						<entry kind="macro" name="DEBUG" value="1"/>
-						<entry kind="macro" name="__CODE_RED" value="1"/>
-						<entry kind="macro" name="__NEWLIB__" value="1"/>
-						<entry kind="macro" name="__USE_CMSIS" value="CMSISv1p30_LPC17xx"/>
-					</resource>
-					<resource project-relative-path="lwip/src/core/ipv4/autoip.c">
-						<entry kind="includePath" name="/lpc_chip_175x_6x/inc">
-							<flag value="VALUE_WORKSPACE_PATH|RESOLVED"/>
-						</entry>
 						<entry kind="includePath" name="/lpc_board_nxp_lpcxpresso_1769/inc">
 							<flag value="VALUE_WORKSPACE_PATH|RESOLVED"/>
 						</entry>
@@ -395,177 +929,6 @@
 						<entry kind="macro" name="__USE_CMSIS" value="CMSISv1p30_LPC17xx"/>
 					</resource>
 					<resource project-relative-path="src/lpc17xx_spi.c">
-						<entry kind="includePath" name="/lpc_chip_175x_6x/inc">
-							<flag value="VALUE_WORKSPACE_PATH|RESOLVED"/>
-						</entry>
-						<entry kind="includePath" name="/lpc_board_nxp_lpcxpresso_1769/inc">
-							<flag value="VALUE_WORKSPACE_PATH|RESOLVED"/>
-						</entry>
-						<entry kind="includePath" name="/${ProjName}/inc">
-							<flag value="VALUE_WORKSPACE_PATH"/>
-						</entry>
-						<entry kind="includePath" name="/Lib_CMSISv1p30_LPC17xx/inc">
-							<flag value="VALUE_WORKSPACE_PATH|RESOLVED"/>
-						</entry>
-						<entry kind="includePath" name="/Lib_EaBaseBoard/inc">
-							<flag value="VALUE_WORKSPACE_PATH|RESOLVED"/>
-						</entry>
-						<entry kind="includePath" name="/Lib_MCU/inc">
-							<flag value="VALUE_WORKSPACE_PATH|RESOLVED"/>
-						</entry>
-						<entry kind="macro" name="DEBUG" value="1"/>
-						<entry kind="macro" name="__CODE_RED" value="1"/>
-						<entry kind="macro" name="__NEWLIB__" value="1"/>
-						<entry kind="macro" name="__USE_CMSIS" value="CMSISv1p30_LPC17xx"/>
-					</resource>
-					<resource project-relative-path="lwip/src/core/ipv4/ip_frag.c">
-						<entry kind="includePath" name="/lpc_chip_175x_6x/inc">
-							<flag value="VALUE_WORKSPACE_PATH|RESOLVED"/>
-						</entry>
-						<entry kind="includePath" name="/lpc_board_nxp_lpcxpresso_1769/inc">
-							<flag value="VALUE_WORKSPACE_PATH|RESOLVED"/>
-						</entry>
-						<entry kind="includePath" name="/${ProjName}/inc">
-							<flag value="VALUE_WORKSPACE_PATH"/>
-						</entry>
-						<entry kind="includePath" name="/${ProjName}/lwip/inc/ipv4">
-							<flag value="VALUE_WORKSPACE_PATH"/>
-						</entry>
-						<entry kind="includePath" name="/${ProjName}/lwip/inc">
-							<flag value="VALUE_WORKSPACE_PATH"/>
-						</entry>
-						<entry kind="includePath" name="/Lib_CMSISv1p30_LPC17xx/inc">
-							<flag value="VALUE_WORKSPACE_PATH|RESOLVED"/>
-						</entry>
-						<entry kind="includePath" name="/Lib_EaBaseBoard/inc">
-							<flag value="VALUE_WORKSPACE_PATH|RESOLVED"/>
-						</entry>
-						<entry kind="includePath" name="/Lib_MCU/inc">
-							<flag value="VALUE_WORKSPACE_PATH|RESOLVED"/>
-						</entry>
-						<entry kind="macro" name="DEBUG" value="1"/>
-						<entry kind="macro" name="__CODE_RED" value="1"/>
-						<entry kind="macro" name="__NEWLIB__" value="1"/>
-						<entry kind="macro" name="__USE_CMSIS" value="CMSISv1p30_LPC17xx"/>
-					</resource>
-					<resource project-relative-path="lwip/src/core/tcp_in.c">
-						<entry kind="includePath" name="/lpc_chip_175x_6x/inc">
-							<flag value="VALUE_WORKSPACE_PATH|RESOLVED"/>
-						</entry>
-						<entry kind="includePath" name="/lpc_board_nxp_lpcxpresso_1769/inc">
-							<flag value="VALUE_WORKSPACE_PATH|RESOLVED"/>
-						</entry>
-						<entry kind="includePath" name="/${ProjName}/inc">
-							<flag value="VALUE_WORKSPACE_PATH"/>
-						</entry>
-						<entry kind="includePath" name="/${ProjName}/lwip/inc/ipv4">
-							<flag value="VALUE_WORKSPACE_PATH"/>
-						</entry>
-						<entry kind="includePath" name="/${ProjName}/lwip/inc">
-							<flag value="VALUE_WORKSPACE_PATH"/>
-						</entry>
-						<entry kind="includePath" name="/Lib_CMSISv1p30_LPC17xx/inc">
-							<flag value="VALUE_WORKSPACE_PATH|RESOLVED"/>
-						</entry>
-						<entry kind="includePath" name="/Lib_EaBaseBoard/inc">
-							<flag value="VALUE_WORKSPACE_PATH|RESOLVED"/>
-						</entry>
-						<entry kind="includePath" name="/Lib_MCU/inc">
-							<flag value="VALUE_WORKSPACE_PATH|RESOLVED"/>
-						</entry>
-						<entry kind="macro" name="DEBUG" value="1"/>
-						<entry kind="macro" name="__CODE_RED" value="1"/>
-						<entry kind="macro" name="__NEWLIB__" value="1"/>
-						<entry kind="macro" name="__USE_CMSIS" value="CMSISv1p30_LPC17xx"/>
-					</resource>
-					<resource project-relative-path="lwip/src/api/netbuf.c">
-						<entry kind="includePath" name="/lpc_chip_175x_6x/inc">
-							<flag value="VALUE_WORKSPACE_PATH|RESOLVED"/>
-						</entry>
-						<entry kind="includePath" name="/lpc_board_nxp_lpcxpresso_1769/inc">
-							<flag value="VALUE_WORKSPACE_PATH|RESOLVED"/>
-						</entry>
-						<entry kind="includePath" name="/${ProjName}/inc">
-							<flag value="VALUE_WORKSPACE_PATH"/>
-						</entry>
-						<entry kind="includePath" name="/${ProjName}/lwip/inc/ipv4">
-							<flag value="VALUE_WORKSPACE_PATH"/>
-						</entry>
-						<entry kind="includePath" name="/${ProjName}/lwip/inc">
-							<flag value="VALUE_WORKSPACE_PATH"/>
-						</entry>
-						<entry kind="includePath" name="/Lib_CMSISv1p30_LPC17xx/inc">
-							<flag value="VALUE_WORKSPACE_PATH|RESOLVED"/>
-						</entry>
-						<entry kind="includePath" name="/Lib_EaBaseBoard/inc">
-							<flag value="VALUE_WORKSPACE_PATH|RESOLVED"/>
-						</entry>
-						<entry kind="includePath" name="/Lib_MCU/inc">
-							<flag value="VALUE_WORKSPACE_PATH|RESOLVED"/>
-						</entry>
-						<entry kind="macro" name="DEBUG" value="1"/>
-						<entry kind="macro" name="__CODE_RED" value="1"/>
-						<entry kind="macro" name="__NEWLIB__" value="1"/>
-						<entry kind="macro" name="__USE_CMSIS" value="CMSISv1p30_LPC17xx"/>
-					</resource>
-					<resource project-relative-path="src/eeprom.c">
-						<entry kind="includePath" name="/lpc_chip_175x_6x/inc">
-							<flag value="VALUE_WORKSPACE_PATH|RESOLVED"/>
-						</entry>
-						<entry kind="includePath" name="/lpc_board_nxp_lpcxpresso_1769/inc">
-							<flag value="VALUE_WORKSPACE_PATH|RESOLVED"/>
-						</entry>
-						<entry kind="includePath" name="/${ProjName}/inc">
-							<flag value="VALUE_WORKSPACE_PATH"/>
-						</entry>
-						<entry kind="includePath" name="/Lib_CMSISv1p30_LPC17xx/inc">
-							<flag value="VALUE_WORKSPACE_PATH|RESOLVED"/>
-						</entry>
-						<entry kind="includePath" name="/Lib_EaBaseBoard/inc">
-							<flag value="VALUE_WORKSPACE_PATH|RESOLVED"/>
-						</entry>
-						<entry kind="includePath" name="/Lib_MCU/inc">
-							<flag value="VALUE_WORKSPACE_PATH|RESOLVED"/>
-						</entry>
-						<entry kind="macro" name="DEBUG" value="1"/>
-						<entry kind="macro" name="__CODE_RED" value="1"/>
-						<entry kind="macro" name="__NEWLIB__" value="1"/>
-						<entry kind="macro" name="__USE_CMSIS" value="CMSISv1p30_LPC17xx"/>
-					</resource>
-					<resource project-relative-path="src/main.c">
-						<entry kind="includePath" name="/lpc_chip_175x_6x/inc">
-							<flag value="VALUE_WORKSPACE_PATH|RESOLVED"/>
-						</entry>
-						<entry kind="includePath" name="/lpc_board_nxp_lpcxpresso_1769/inc">
-							<flag value="VALUE_WORKSPACE_PATH|RESOLVED"/>
-						</entry>
-						<entry kind="includePath" name="/${ProjName}/inc">
-							<flag value="VALUE_WORKSPACE_PATH"/>
-						</entry>
-						<entry kind="includePath" name="/${ProjName}/lwip/inc/ipv4">
-							<flag value="VALUE_WORKSPACE_PATH"/>
-						</entry>
-						<entry kind="includePath" name="/${ProjName}/lwip/inc">
-							<flag value="VALUE_WORKSPACE_PATH"/>
-						</entry>
-						<entry kind="includePath" name="/Lib_CMSISv1p30_LPC17xx/inc">
-							<flag value="VALUE_WORKSPACE_PATH|RESOLVED"/>
-						</entry>
-						<entry kind="includePath" name="/Lib_EaBaseBoard/inc">
-							<flag value="VALUE_WORKSPACE_PATH|RESOLVED"/>
-						</entry>
-						<entry kind="includePath" name="/Lib_MCU/inc">
-							<flag value="VALUE_WORKSPACE_PATH|RESOLVED"/>
-						</entry>
-						<entry kind="macro" name="DEBUG" value="1"/>
-						<entry kind="macro" name="__CODE_RED" value="1"/>
-						<entry kind="macro" name="__NEWLIB__" value="1"/>
-						<entry kind="macro" name="__USE_CMSIS" value="CMSISv1p30_LPC17xx"/>
-					</resource>
-					<resource project-relative-path="lwip/src/core/def.c">
-						<entry kind="includePath" name="/lpc_chip_175x_6x/inc">
-							<flag value="VALUE_WORKSPACE_PATH|RESOLVED"/>
-						</entry>
 						<entry kind="includePath" name="/lpc_board_nxp_lpcxpresso_1769/inc">
 							<flag value="VALUE_WORKSPACE_PATH|RESOLVED"/>
 						</entry>
@@ -593,63 +956,6 @@
 						<entry kind="macro" name="__USE_CMSIS" value="CMSISv1p30_LPC17xx"/>
 					</resource>
 					<resource project-relative-path="src/ff.c">
-						<entry kind="includePath" name="/lpc_chip_175x_6x/inc">
-							<flag value="VALUE_WORKSPACE_PATH|RESOLVED"/>
-						</entry>
-						<entry kind="includePath" name="/lpc_board_nxp_lpcxpresso_1769/inc">
-							<flag value="VALUE_WORKSPACE_PATH|RESOLVED"/>
-						</entry>
-						<entry kind="includePath" name="/${ProjName}/inc">
-							<flag value="VALUE_WORKSPACE_PATH"/>
-						</entry>
-						<entry kind="includePath" name="/Lib_CMSISv1p30_LPC17xx/inc">
-							<flag value="VALUE_WORKSPACE_PATH|RESOLVED"/>
-						</entry>
-						<entry kind="includePath" name="/Lib_EaBaseBoard/inc">
-							<flag value="VALUE_WORKSPACE_PATH|RESOLVED"/>
-						</entry>
-						<entry kind="includePath" name="/Lib_MCU/inc">
-							<flag value="VALUE_WORKSPACE_PATH|RESOLVED"/>
-						</entry>
-						<entry kind="macro" name="DEBUG" value="1"/>
-						<entry kind="macro" name="__CODE_RED" value="1"/>
-						<entry kind="macro" name="__NEWLIB__" value="1"/>
-						<entry kind="macro" name="__USE_CMSIS" value="CMSISv1p30_LPC17xx"/>
-					</resource>
-					<resource project-relative-path="src/lwip_fs.c">
-						<entry kind="includePath" name="/${ProjName}/inc">
-							<flag value="VALUE_WORKSPACE_PATH"/>
-						</entry>
-						<entry kind="includePath" name="/${ProjName}/lwip/inc/ipv4">
-							<flag value="VALUE_WORKSPACE_PATH"/>
-						</entry>
-						<entry kind="includePath" name="/${ProjName}/lwip/inc">
-							<flag value="VALUE_WORKSPACE_PATH"/>
-						</entry>
-						<entry kind="includePath" name="/lpc_board_nxp_lpcxpresso_1769/inc">
-							<flag value="VALUE_WORKSPACE_PATH|RESOLVED"/>
-						</entry>
-						<entry kind="includePath" name="/lpc_chip_175x_6x/inc">
-							<flag value="VALUE_WORKSPACE_PATH|RESOLVED"/>
-						</entry>
-						<entry kind="includePath" name="/Lib_CMSISv1p30_LPC17xx/inc">
-							<flag value="VALUE_WORKSPACE_PATH|RESOLVED"/>
-						</entry>
-						<entry kind="includePath" name="/Lib_EaBaseBoard/inc">
-							<flag value="VALUE_WORKSPACE_PATH|RESOLVED"/>
-						</entry>
-						<entry kind="includePath" name="/Lib_MCU/inc">
-							<flag value="VALUE_WORKSPACE_PATH|RESOLVED"/>
-						</entry>
-						<entry kind="macro" name="DEBUG" value="1"/>
-						<entry kind="macro" name="__CODE_RED" value="1"/>
-						<entry kind="macro" name="__NEWLIB__" value="1"/>
-						<entry kind="macro" name="__USE_CMSIS" value="CMSISv1p30_LPC17xx"/>
-					</resource>
-					<resource project-relative-path="lwip/src/netif/ethernetif.c">
-						<entry kind="includePath" name="/lpc_chip_175x_6x/inc">
-							<flag value="VALUE_WORKSPACE_PATH|RESOLVED"/>
-						</entry>
 						<entry kind="includePath" name="/lpc_board_nxp_lpcxpresso_1769/inc">
 							<flag value="VALUE_WORKSPACE_PATH|RESOLVED"/>
 						</entry>
@@ -677,9 +983,6 @@
 						<entry kind="macro" name="__USE_CMSIS" value="CMSISv1p30_LPC17xx"/>
 					</resource>
 					<resource project-relative-path="lwip/src/core/ipv4/igmp.c">
-						<entry kind="includePath" name="/lpc_chip_175x_6x/inc">
-							<flag value="VALUE_WORKSPACE_PATH|RESOLVED"/>
-						</entry>
 						<entry kind="includePath" name="/lpc_board_nxp_lpcxpresso_1769/inc">
 							<flag value="VALUE_WORKSPACE_PATH|RESOLVED"/>
 						</entry>
@@ -707,99 +1010,6 @@
 						<entry kind="macro" name="__USE_CMSIS" value="CMSISv1p30_LPC17xx"/>
 					</resource>
 					<resource project-relative-path="lwip/src/arch/lpc_debug.c">
-						<entry kind="includePath" name="/lpc_chip_175x_6x/inc">
-							<flag value="VALUE_WORKSPACE_PATH|RESOLVED"/>
-						</entry>
-						<entry kind="includePath" name="/lpc_board_nxp_lpcxpresso_1769/inc">
-							<flag value="VALUE_WORKSPACE_PATH|RESOLVED"/>
-						</entry>
-						<entry kind="includePath" name="/${ProjName}/inc">
-							<flag value="VALUE_WORKSPACE_PATH"/>
-						</entry>
-						<entry kind="includePath" name="/${ProjName}/lwip/inc/ipv4">
-							<flag value="VALUE_WORKSPACE_PATH"/>
-						</entry>
-						<entry kind="includePath" name="/${ProjName}/lwip/inc">
-							<flag value="VALUE_WORKSPACE_PATH"/>
-						</entry>
-						<entry kind="includePath" name="/Lib_CMSISv1p30_LPC17xx/inc">
-							<flag value="VALUE_WORKSPACE_PATH|RESOLVED"/>
-						</entry>
-						<entry kind="includePath" name="/Lib_EaBaseBoard/inc">
-							<flag value="VALUE_WORKSPACE_PATH|RESOLVED"/>
-						</entry>
-						<entry kind="includePath" name="/Lib_MCU/inc">
-							<flag value="VALUE_WORKSPACE_PATH|RESOLVED"/>
-						</entry>
-						<entry kind="macro" name="DEBUG" value="1"/>
-						<entry kind="macro" name="__CODE_RED" value="1"/>
-						<entry kind="macro" name="__NEWLIB__" value="1"/>
-						<entry kind="macro" name="__USE_CMSIS" value="CMSISv1p30_LPC17xx"/>
-					</resource>
-					<resource project-relative-path="lwip/src/api/sockets.c">
-						<entry kind="includePath" name="/lpc_chip_175x_6x/inc">
-							<flag value="VALUE_WORKSPACE_PATH|RESOLVED"/>
-						</entry>
-						<entry kind="includePath" name="/lpc_board_nxp_lpcxpresso_1769/inc">
-							<flag value="VALUE_WORKSPACE_PATH|RESOLVED"/>
-						</entry>
-						<entry kind="includePath" name="/${ProjName}/inc">
-							<flag value="VALUE_WORKSPACE_PATH"/>
-						</entry>
-						<entry kind="includePath" name="/${ProjName}/lwip/inc/ipv4">
-							<flag value="VALUE_WORKSPACE_PATH"/>
-						</entry>
-						<entry kind="includePath" name="/${ProjName}/lwip/inc">
-							<flag value="VALUE_WORKSPACE_PATH"/>
-						</entry>
-						<entry kind="includePath" name="/Lib_CMSISv1p30_LPC17xx/inc">
-							<flag value="VALUE_WORKSPACE_PATH|RESOLVED"/>
-						</entry>
-						<entry kind="includePath" name="/Lib_EaBaseBoard/inc">
-							<flag value="VALUE_WORKSPACE_PATH|RESOLVED"/>
-						</entry>
-						<entry kind="includePath" name="/Lib_MCU/inc">
-							<flag value="VALUE_WORKSPACE_PATH|RESOLVED"/>
-						</entry>
-						<entry kind="macro" name="DEBUG" value="1"/>
-						<entry kind="macro" name="__CODE_RED" value="1"/>
-						<entry kind="macro" name="__NEWLIB__" value="1"/>
-						<entry kind="macro" name="__USE_CMSIS" value="CMSISv1p30_LPC17xx"/>
-					</resource>
-					<resource project-relative-path="lwip/src/core/stats.c">
-						<entry kind="includePath" name="/lpc_chip_175x_6x/inc">
-							<flag value="VALUE_WORKSPACE_PATH|RESOLVED"/>
-						</entry>
-						<entry kind="includePath" name="/lpc_board_nxp_lpcxpresso_1769/inc">
-							<flag value="VALUE_WORKSPACE_PATH|RESOLVED"/>
-						</entry>
-						<entry kind="includePath" name="/${ProjName}/inc">
-							<flag value="VALUE_WORKSPACE_PATH"/>
-						</entry>
-						<entry kind="includePath" name="/${ProjName}/lwip/inc/ipv4">
-							<flag value="VALUE_WORKSPACE_PATH"/>
-						</entry>
-						<entry kind="includePath" name="/${ProjName}/lwip/inc">
-							<flag value="VALUE_WORKSPACE_PATH"/>
-						</entry>
-						<entry kind="includePath" name="/Lib_CMSISv1p30_LPC17xx/inc">
-							<flag value="VALUE_WORKSPACE_PATH|RESOLVED"/>
-						</entry>
-						<entry kind="includePath" name="/Lib_EaBaseBoard/inc">
-							<flag value="VALUE_WORKSPACE_PATH|RESOLVED"/>
-						</entry>
-						<entry kind="includePath" name="/Lib_MCU/inc">
-							<flag value="VALUE_WORKSPACE_PATH|RESOLVED"/>
-						</entry>
-						<entry kind="macro" name="DEBUG" value="1"/>
-						<entry kind="macro" name="__CODE_RED" value="1"/>
-						<entry kind="macro" name="__NEWLIB__" value="1"/>
-						<entry kind="macro" name="__USE_CMSIS" value="CMSISv1p30_LPC17xx"/>
-					</resource>
-					<resource project-relative-path="lwip/src/core/ipv4/ip_addr.c">
-						<entry kind="includePath" name="/lpc_chip_175x_6x/inc">
-							<flag value="VALUE_WORKSPACE_PATH|RESOLVED"/>
-						</entry>
 						<entry kind="includePath" name="/lpc_board_nxp_lpcxpresso_1769/inc">
 							<flag value="VALUE_WORKSPACE_PATH|RESOLVED"/>
 						</entry>
@@ -827,9 +1037,6 @@
 						<entry kind="macro" name="__USE_CMSIS" value="CMSISv1p30_LPC17xx"/>
 					</resource>
 					<resource project-relative-path="lwip/src/arch/lpc17xx_40xx_emac.c">
-						<entry kind="includePath" name="/lpc_chip_175x_6x/inc">
-							<flag value="VALUE_WORKSPACE_PATH|RESOLVED"/>
-						</entry>
 						<entry kind="includePath" name="/lpc_board_nxp_lpcxpresso_1769/inc">
 							<flag value="VALUE_WORKSPACE_PATH|RESOLVED"/>
 						</entry>
@@ -857,9 +1064,6 @@
 						<entry kind="macro" name="__USE_CMSIS" value="CMSISv1p30_LPC17xx"/>
 					</resource>
 					<resource project-relative-path="lwip/src/core/udp.c">
-						<entry kind="includePath" name="/lpc_chip_175x_6x/inc">
-							<flag value="VALUE_WORKSPACE_PATH|RESOLVED"/>
-						</entry>
 						<entry kind="includePath" name="/lpc_board_nxp_lpcxpresso_1769/inc">
 							<flag value="VALUE_WORKSPACE_PATH|RESOLVED"/>
 						</entry>
@@ -916,100 +1120,7 @@
 						<entry kind="macro" name="__NEWLIB__" value="1"/>
 						<entry kind="macro" name="__USE_CMSIS" value="CMSISv1p30_LPC17xx"/>
 					</resource>
-					<resource project-relative-path="lwip/src/api/netifapi.c">
-						<entry kind="includePath" name="/lpc_chip_175x_6x/inc">
-							<flag value="VALUE_WORKSPACE_PATH|RESOLVED"/>
-						</entry>
-						<entry kind="includePath" name="/lpc_board_nxp_lpcxpresso_1769/inc">
-							<flag value="VALUE_WORKSPACE_PATH|RESOLVED"/>
-						</entry>
-						<entry kind="includePath" name="/${ProjName}/inc">
-							<flag value="VALUE_WORKSPACE_PATH"/>
-						</entry>
-						<entry kind="includePath" name="/${ProjName}/lwip/inc/ipv4">
-							<flag value="VALUE_WORKSPACE_PATH"/>
-						</entry>
-						<entry kind="includePath" name="/${ProjName}/lwip/inc">
-							<flag value="VALUE_WORKSPACE_PATH"/>
-						</entry>
-						<entry kind="includePath" name="/Lib_CMSISv1p30_LPC17xx/inc">
-							<flag value="VALUE_WORKSPACE_PATH|RESOLVED"/>
-						</entry>
-						<entry kind="includePath" name="/Lib_EaBaseBoard/inc">
-							<flag value="VALUE_WORKSPACE_PATH|RESOLVED"/>
-						</entry>
-						<entry kind="includePath" name="/Lib_MCU/inc">
-							<flag value="VALUE_WORKSPACE_PATH|RESOLVED"/>
-						</entry>
-						<entry kind="macro" name="DEBUG" value="1"/>
-						<entry kind="macro" name="__CODE_RED" value="1"/>
-						<entry kind="macro" name="__NEWLIB__" value="1"/>
-						<entry kind="macro" name="__USE_CMSIS" value="CMSISv1p30_LPC17xx"/>
-					</resource>
 					<resource project-relative-path="lwip/src/core/ipv4/inet.c">
-						<entry kind="includePath" name="/lpc_chip_175x_6x/inc">
-							<flag value="VALUE_WORKSPACE_PATH|RESOLVED"/>
-						</entry>
-						<entry kind="includePath" name="/lpc_board_nxp_lpcxpresso_1769/inc">
-							<flag value="VALUE_WORKSPACE_PATH|RESOLVED"/>
-						</entry>
-						<entry kind="includePath" name="/${ProjName}/inc">
-							<flag value="VALUE_WORKSPACE_PATH"/>
-						</entry>
-						<entry kind="includePath" name="/${ProjName}/lwip/inc/ipv4">
-							<flag value="VALUE_WORKSPACE_PATH"/>
-						</entry>
-						<entry kind="includePath" name="/${ProjName}/lwip/inc">
-							<flag value="VALUE_WORKSPACE_PATH"/>
-						</entry>
-						<entry kind="includePath" name="/Lib_CMSISv1p30_LPC17xx/inc">
-							<flag value="VALUE_WORKSPACE_PATH|RESOLVED"/>
-						</entry>
-						<entry kind="includePath" name="/Lib_EaBaseBoard/inc">
-							<flag value="VALUE_WORKSPACE_PATH|RESOLVED"/>
-						</entry>
-						<entry kind="includePath" name="/Lib_MCU/inc">
-							<flag value="VALUE_WORKSPACE_PATH|RESOLVED"/>
-						</entry>
-						<entry kind="macro" name="DEBUG" value="1"/>
-						<entry kind="macro" name="__CODE_RED" value="1"/>
-						<entry kind="macro" name="__NEWLIB__" value="1"/>
-						<entry kind="macro" name="__USE_CMSIS" value="CMSISv1p30_LPC17xx"/>
-					</resource>
-					<resource project-relative-path="lwip/src/api/api_msg.c">
-						<entry kind="includePath" name="/lpc_chip_175x_6x/inc">
-							<flag value="VALUE_WORKSPACE_PATH|RESOLVED"/>
-						</entry>
-						<entry kind="includePath" name="/lpc_board_nxp_lpcxpresso_1769/inc">
-							<flag value="VALUE_WORKSPACE_PATH|RESOLVED"/>
-						</entry>
-						<entry kind="includePath" name="/${ProjName}/inc">
-							<flag value="VALUE_WORKSPACE_PATH"/>
-						</entry>
-						<entry kind="includePath" name="/${ProjName}/lwip/inc/ipv4">
-							<flag value="VALUE_WORKSPACE_PATH"/>
-						</entry>
-						<entry kind="includePath" name="/${ProjName}/lwip/inc">
-							<flag value="VALUE_WORKSPACE_PATH"/>
-						</entry>
-						<entry kind="includePath" name="/Lib_CMSISv1p30_LPC17xx/inc">
-							<flag value="VALUE_WORKSPACE_PATH|RESOLVED"/>
-						</entry>
-						<entry kind="includePath" name="/Lib_EaBaseBoard/inc">
-							<flag value="VALUE_WORKSPACE_PATH|RESOLVED"/>
-						</entry>
-						<entry kind="includePath" name="/Lib_MCU/inc">
-							<flag value="VALUE_WORKSPACE_PATH|RESOLVED"/>
-						</entry>
-						<entry kind="macro" name="DEBUG" value="1"/>
-						<entry kind="macro" name="__CODE_RED" value="1"/>
-						<entry kind="macro" name="__NEWLIB__" value="1"/>
-						<entry kind="macro" name="__USE_CMSIS" value="CMSISv1p30_LPC17xx"/>
-					</resource>
-					<resource project-relative-path="lwip/src/core/timers.c">
-						<entry kind="includePath" name="/lpc_chip_175x_6x/inc">
-							<flag value="VALUE_WORKSPACE_PATH|RESOLVED"/>
-						</entry>
 						<entry kind="includePath" name="/lpc_board_nxp_lpcxpresso_1769/inc">
 							<flag value="VALUE_WORKSPACE_PATH|RESOLVED"/>
 						</entry>
@@ -1037,39 +1148,6 @@
 						<entry kind="macro" name="__USE_CMSIS" value="CMSISv1p30_LPC17xx"/>
 					</resource>
 					<resource project-relative-path="src/httpd.c">
-						<entry kind="includePath" name="/${ProjName}/inc">
-							<flag value="VALUE_WORKSPACE_PATH"/>
-						</entry>
-						<entry kind="includePath" name="/${ProjName}/lwip/inc/ipv4">
-							<flag value="VALUE_WORKSPACE_PATH"/>
-						</entry>
-						<entry kind="includePath" name="/${ProjName}/lwip/inc">
-							<flag value="VALUE_WORKSPACE_PATH"/>
-						</entry>
-						<entry kind="includePath" name="/lpc_board_nxp_lpcxpresso_1769/inc">
-							<flag value="VALUE_WORKSPACE_PATH|RESOLVED"/>
-						</entry>
-						<entry kind="includePath" name="/lpc_chip_175x_6x/inc">
-							<flag value="VALUE_WORKSPACE_PATH|RESOLVED"/>
-						</entry>
-						<entry kind="includePath" name="/Lib_CMSISv1p30_LPC17xx/inc">
-							<flag value="VALUE_WORKSPACE_PATH|RESOLVED"/>
-						</entry>
-						<entry kind="includePath" name="/Lib_EaBaseBoard/inc">
-							<flag value="VALUE_WORKSPACE_PATH|RESOLVED"/>
-						</entry>
-						<entry kind="includePath" name="/Lib_MCU/inc">
-							<flag value="VALUE_WORKSPACE_PATH|RESOLVED"/>
-						</entry>
-						<entry kind="macro" name="DEBUG" value="1"/>
-						<entry kind="macro" name="__CODE_RED" value="1"/>
-						<entry kind="macro" name="__NEWLIB__" value="1"/>
-						<entry kind="macro" name="__USE_CMSIS" value="CMSISv1p30_LPC17xx"/>
-					</resource>
-					<resource project-relative-path="lwip/src/arch/lpc17xx_40xx_systick_arch.c">
-						<entry kind="includePath" name="/lpc_chip_175x_6x/inc">
-							<flag value="VALUE_WORKSPACE_PATH|RESOLVED"/>
-						</entry>
 						<entry kind="includePath" name="/lpc_board_nxp_lpcxpresso_1769/inc">
 							<flag value="VALUE_WORKSPACE_PATH|RESOLVED"/>
 						</entry>
@@ -1097,13 +1175,16 @@
 						<entry kind="macro" name="__USE_CMSIS" value="CMSISv1p30_LPC17xx"/>
 					</resource>
 					<resource project-relative-path="src/cr_startup_lpc17.c">
-						<entry kind="includePath" name="/lpc_chip_175x_6x/inc">
-							<flag value="VALUE_WORKSPACE_PATH|RESOLVED"/>
-						</entry>
 						<entry kind="includePath" name="/lpc_board_nxp_lpcxpresso_1769/inc">
 							<flag value="VALUE_WORKSPACE_PATH|RESOLVED"/>
 						</entry>
 						<entry kind="includePath" name="/${ProjName}/inc">
+							<flag value="VALUE_WORKSPACE_PATH"/>
+						</entry>
+						<entry kind="includePath" name="/${ProjName}/lwip/inc/ipv4">
+							<flag value="VALUE_WORKSPACE_PATH"/>
+						</entry>
+						<entry kind="includePath" name="/${ProjName}/lwip/inc">
 							<flag value="VALUE_WORKSPACE_PATH"/>
 						</entry>
 						<entry kind="includePath" name="/Lib_CMSISv1p30_LPC17xx/inc">
@@ -1121,9 +1202,6 @@
 						<entry kind="macro" name="__USE_CMSIS" value="CMSISv1p30_LPC17xx"/>
 					</resource>
 					<resource project-relative-path="lwip/src/core/ipv4/ip.c">
-						<entry kind="includePath" name="/lpc_chip_175x_6x/inc">
-							<flag value="VALUE_WORKSPACE_PATH|RESOLVED"/>
-						</entry>
 						<entry kind="includePath" name="/lpc_board_nxp_lpcxpresso_1769/inc">
 							<flag value="VALUE_WORKSPACE_PATH|RESOLVED"/>
 						</entry>
@@ -1151,9 +1229,6 @@
 						<entry kind="macro" name="__USE_CMSIS" value="CMSISv1p30_LPC17xx"/>
 					</resource>
 					<resource project-relative-path="lwip/src/core/tcp.c">
-						<entry kind="includePath" name="/lpc_chip_175x_6x/inc">
-							<flag value="VALUE_WORKSPACE_PATH|RESOLVED"/>
-						</entry>
 						<entry kind="includePath" name="/lpc_board_nxp_lpcxpresso_1769/inc">
 							<flag value="VALUE_WORKSPACE_PATH|RESOLVED"/>
 						</entry>
@@ -1181,9 +1256,6 @@
 						<entry kind="macro" name="__USE_CMSIS" value="CMSISv1p30_LPC17xx"/>
 					</resource>
 					<resource project-relative-path="lwip/src/core/init.c">
-						<entry kind="includePath" name="/lpc_chip_175x_6x/inc">
-							<flag value="VALUE_WORKSPACE_PATH|RESOLVED"/>
-						</entry>
 						<entry kind="includePath" name="/lpc_board_nxp_lpcxpresso_1769/inc">
 							<flag value="VALUE_WORKSPACE_PATH|RESOLVED"/>
 						</entry>
@@ -1211,33 +1283,6 @@
 						<entry kind="macro" name="__USE_CMSIS" value="CMSISv1p30_LPC17xx"/>
 					</resource>
 					<resource project-relative-path="src/mmc.c">
-						<entry kind="includePath" name="/lpc_chip_175x_6x/inc">
-							<flag value="VALUE_WORKSPACE_PATH|RESOLVED"/>
-						</entry>
-						<entry kind="includePath" name="/lpc_board_nxp_lpcxpresso_1769/inc">
-							<flag value="VALUE_WORKSPACE_PATH|RESOLVED"/>
-						</entry>
-						<entry kind="includePath" name="/${ProjName}/inc">
-							<flag value="VALUE_WORKSPACE_PATH"/>
-						</entry>
-						<entry kind="includePath" name="/Lib_CMSISv1p30_LPC17xx/inc">
-							<flag value="VALUE_WORKSPACE_PATH|RESOLVED"/>
-						</entry>
-						<entry kind="includePath" name="/Lib_EaBaseBoard/inc">
-							<flag value="VALUE_WORKSPACE_PATH|RESOLVED"/>
-						</entry>
-						<entry kind="includePath" name="/Lib_MCU/inc">
-							<flag value="VALUE_WORKSPACE_PATH|RESOLVED"/>
-						</entry>
-						<entry kind="macro" name="DEBUG" value="1"/>
-						<entry kind="macro" name="__CODE_RED" value="1"/>
-						<entry kind="macro" name="__NEWLIB__" value="1"/>
-						<entry kind="macro" name="__USE_CMSIS" value="CMSISv1p30_LPC17xx"/>
-					</resource>
-					<resource project-relative-path="lwip/src/core/memp.c">
-						<entry kind="includePath" name="/lpc_chip_175x_6x/inc">
-							<flag value="VALUE_WORKSPACE_PATH|RESOLVED"/>
-						</entry>
 						<entry kind="includePath" name="/lpc_board_nxp_lpcxpresso_1769/inc">
 							<flag value="VALUE_WORKSPACE_PATH|RESOLVED"/>
 						</entry>
@@ -1265,9 +1310,6 @@
 						<entry kind="macro" name="__USE_CMSIS" value="CMSISv1p30_LPC17xx"/>
 					</resource>
 					<resource project-relative-path="lwip/src/core/pbuf.c">
-						<entry kind="includePath" name="/lpc_chip_175x_6x/inc">
-							<flag value="VALUE_WORKSPACE_PATH|RESOLVED"/>
-						</entry>
 						<entry kind="includePath" name="/lpc_board_nxp_lpcxpresso_1769/inc">
 							<flag value="VALUE_WORKSPACE_PATH|RESOLVED"/>
 						</entry>
@@ -1294,40 +1336,7 @@
 						<entry kind="macro" name="__NEWLIB__" value="1"/>
 						<entry kind="macro" name="__USE_CMSIS" value="CMSISv1p30_LPC17xx"/>
 					</resource>
-					<resource project-relative-path="lwip/src/core/dhcp.c">
-						<entry kind="includePath" name="/lpc_chip_175x_6x/inc">
-							<flag value="VALUE_WORKSPACE_PATH|RESOLVED"/>
-						</entry>
-						<entry kind="includePath" name="/lpc_board_nxp_lpcxpresso_1769/inc">
-							<flag value="VALUE_WORKSPACE_PATH|RESOLVED"/>
-						</entry>
-						<entry kind="includePath" name="/${ProjName}/inc">
-							<flag value="VALUE_WORKSPACE_PATH"/>
-						</entry>
-						<entry kind="includePath" name="/${ProjName}/lwip/inc/ipv4">
-							<flag value="VALUE_WORKSPACE_PATH"/>
-						</entry>
-						<entry kind="includePath" name="/${ProjName}/lwip/inc">
-							<flag value="VALUE_WORKSPACE_PATH"/>
-						</entry>
-						<entry kind="includePath" name="/Lib_CMSISv1p30_LPC17xx/inc">
-							<flag value="VALUE_WORKSPACE_PATH|RESOLVED"/>
-						</entry>
-						<entry kind="includePath" name="/Lib_EaBaseBoard/inc">
-							<flag value="VALUE_WORKSPACE_PATH|RESOLVED"/>
-						</entry>
-						<entry kind="includePath" name="/Lib_MCU/inc">
-							<flag value="VALUE_WORKSPACE_PATH|RESOLVED"/>
-						</entry>
-						<entry kind="macro" name="DEBUG" value="1"/>
-						<entry kind="macro" name="__CODE_RED" value="1"/>
-						<entry kind="macro" name="__NEWLIB__" value="1"/>
-						<entry kind="macro" name="__USE_CMSIS" value="CMSISv1p30_LPC17xx"/>
-					</resource>
-					<resource project-relative-path="lwip/src/core/netif.c">
-						<entry kind="includePath" name="/lpc_chip_175x_6x/inc">
-							<flag value="VALUE_WORKSPACE_PATH|RESOLVED"/>
-						</entry>
+					<resource project-relative-path="src/enet.c">
 						<entry kind="includePath" name="/lpc_board_nxp_lpcxpresso_1769/inc">
 							<flag value="VALUE_WORKSPACE_PATH|RESOLVED"/>
 						</entry>
