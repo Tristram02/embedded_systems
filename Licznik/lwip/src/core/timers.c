@@ -1,4 +1,4 @@
-/**
+ /**
  * @file
  * Stack-internal timers implementation.
  * This file includes timer callbacks for stack-internal timers as well as
@@ -109,6 +109,8 @@ tcp_timer_needed(void)
 }
 #endif /* LWIP_TCP */
 
+
+
 #if IP_REASSEMBLY
 /**
  * Timer callback function that calls ip_reass_tmr() and reschedules itself.
@@ -218,6 +220,8 @@ dns_timer(void *arg)
   sys_timeout(DNS_TMR_INTERVAL, dns_timer, NULL);
 }
 #endif /* LWIP_DNS */
+
+
 
 /** Initialize this module */
 void sys_timeouts_init(void)

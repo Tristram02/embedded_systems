@@ -89,8 +89,7 @@
 
 
 
-#define LPC_ENET_BASE             0x50000000
-#define LPC_ETHERNET              ((LPC_ENET_T             *) LPC_ENET_BASE)
+
 
 
 
@@ -931,7 +930,7 @@ void webserver()
 			/* Set interface speed and duplex */
 			if (physts & PHY_LINK_SPEED100) {
 				Chip_ENET_Set100Mbps(LPC_ETHERNET);
-				NETIF_INIT_SNMP(&lpc_netif, snmp_ifType_ethernet_csmacd, 100000000);
+				NETIF_INIT_SNMP(&lpc_netif, snmp_ifType_ethernet_csmacd, 1000000000);
 			}
 			else {
 				Chip_ENET_Set10Mbps(LPC_ETHERNET);

@@ -1,28 +1,28 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <section name="Workbench">
 	<section name="org.eclipse.ui.texteditor.FindReplaceDialog">
-		<item key="selection" value=""/>
+		<item key="selection" value="ethbroadcast"/>
 		<item key="wrap" value="true"/>
 		<item key="casesensitive" value="false"/>
 		<item key="wholeword" value="false"/>
 		<item key="incremental" value="false"/>
 		<item key="isRegEx" value="false"/>
 		<list key="findhistory">
-			<item value="sys_now"/>
-			<item value="ENET_RCTRL_SIZE"/>
-			<item value="msDelay"/>
-			<item value="ENET_RCTRL_INT"/>
-			<item value="Chip_Clock_GetSYSCLKRate"/>
-			<item value=" Chip_Clock_GetSYSCLKRate"/>
-			<item value=" Chip_Clock_GetSYSCLKRate_But_Different_Name"/>
-			<item value="SYSCTL_PLLSTS_ENABLED"/>
-			<item value="bool"/>
-			<item value="INLINE"/>
-			<item value="STATIC"/>
-			<item value="Status"/>
-			<item value="Chip_ENET_Ini"/>
-			<item value="Chip_ENET_Get"/>
-			<item value="ENET_T"/>
+			<item value="ethbroadcast"/>
+			<item value="etharp_init"/>
+			<item value="eth"/>
+			<item value="Chip_ENET_Set100Mbps"/>
+			<item value="LPC_ENET_T"/>
+			<item value="static inline void Chip_ENET_Set100Mbps(LPC_ENET_T *pENET)"/>
+			<item value="LPC_ETHERNET "/>
+			<item value="sys_check_timeouts"/>
+			<item value="static err_t"/>
+			<item value="etharp_output"/>
+			<item value="etharp_send_ip"/>
+			<item value="Chip_ENET_Set10Mbps"/>
+			<item value="Chip_ENET_RXDisable"/>
+			<item value="lpc_low_level_input"/>
+			<item value="eth_hdr"/>
 		</list>
 		<list key="replacehistory">
 			<item value="uint8_t"/>

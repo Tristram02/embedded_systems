@@ -29,6 +29,7 @@ typedef void (*p_msDelay_func_t)(uint32_t);
 #define SUCCESS 1
 
 
+
 #define LAN8_BCR_REG        0x0	/*!< Basic Control Register */
 #define LAN8_BSR_REG        0x1	/*!< Basic Status Reg */
 #define LAN8_PHYID1_REG     0x2	/*!< PHY ID 1 Reg  */
@@ -212,6 +213,10 @@ struct eth_addr {
   PACK_STRUCT_FIELD(u8_t addr[ETHARP_HWADDR_LEN]);
 } PACK_STRUCT_STRUCT;
 PACK_STRUCT_END
+
+
+
+
 
 PACK_STRUCT_BEGIN
 /** Ethernet header */
@@ -437,6 +442,8 @@ typedef enum CHIP_SYSCTL_CLOCK {
 
 #define LINK_STATS_INC(x)
 
+#define ARP_MAXPENDING 2
+
 typedef struct {
 	/* prxs must be 8 byte aligned! */
 	ENET_RXSTAT_T prxs[LPC_NUM_BUFF_RXDESCS];	/**< Pointer to RX statuses */
@@ -623,9 +630,6 @@ static struct etharp_entry arp_table[ARP_TABLE_SIZE];
 
 err_t ethernet_input(struct pbuf *p, struct netif *netif);
 
-const struct eth_addr ethbroadcast = {{0xff,0xff,0xff,0xff,0xff,0xff}};
-const struct eth_addr ethzero = {{0,0,0,0,0,0}};
-
 #ifndef ETHADDR16_COPY
 #define ETHADDR16_COPY(src, dst)  SMEMCPY(src, dst, ETHARP_HWADDR_LEN)
 #endif
@@ -649,7 +653,21 @@ const struct eth_addr ethzero = {{0,0,0,0,0,0}};
 
 #define ENET_IPGT_HALFDUPLEX (ENET_IPGT_BTOBINTEGAP(0x12))
 
-static inline void Chip_ENET_Set100Mbps(LPC_ENET_T *pENET);
-static inline void Chip_ENET_Set10Mbps(LPC_ENET_T *pENET);
+void Chip_ENET_Set100Mbps(LPC_ENET_T *pENET);
+void Chip_ENET_Set10Mbps(LPC_ENET_T *pENET);
+
+#define ARP_MAXAGE              240
+#define ARP_AGE_REREQUEST_USED  (ARP_MAXAGE - 12)
+
+#if !LWIP_NETIF_HWADDRHINT
+static u8_t etharp_cached_entry;
+#endif /* !LWIP_NETIF_HWADDRHINT */
+
+#if LWIP_NETIF_HWADDRHINT
+#define ETHARP_SET_HINT(netif, hint)  if (((netif) != NULL) && ((netif)->addr_hint != NULL))  \
+                                      *((netif)->addr_hint) = (hint);
+#else /* LWIP_NETIF_HWADDRHINT */
+#define ETHARP_SET_HINT(netif, hint)  (etharp_cached_entry = (hint))
+#endif /* LWIP_NETIF_HWADDRHINT */
 
 #endif /* INC_ENET_H_ */
