@@ -1,0 +1,6 @@
+13:20:57 **** Incremental Build of configuration Debug for project webserver ****
+make -r -j16 all 
+make: Nothing to be done for 'all'.
+
+13:20:57 Build Finished. 0 errors, 0 warnings. (took 107ms)
+

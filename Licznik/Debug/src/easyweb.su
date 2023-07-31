@@ -1,0 +1,3 @@
+easyweb.c:140:6:HTTPServer	8	static
+easyweb.c:200:14:GetAD7Val	4	static
+easyweb.c:292:6:InsertDynamicValues	24	static

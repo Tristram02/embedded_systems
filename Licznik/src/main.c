@@ -47,6 +47,8 @@
 #include "light.h"
 #include "acc.h"
 
+#include "easyweb.h"
+#include "tcpip.h"
 
 
 #define NOTE_PIN_HIGH() GPIO_SetValue(0, (unsigned int)1<<26);
@@ -84,8 +86,6 @@ FRESULT res;
 
 uint8_t * buzzer_sound = (uint8_t*)"A1_";
 uint8_t * erase_sound = (uint8_t*)"B3_";
-
-
 
 void initUART0(void);
 void U0Write(char txData);
@@ -775,7 +775,7 @@ int arrayToInt(uint8_t arr[])
  *  @brief    Inkrementuje timer
  */
 
-void SysTick_Handler(void) 
+void SysTick_Handler_Timer(void)
 {
     msTicks++;
 }
@@ -885,6 +885,9 @@ int main(void)
 	int8_t y = 0;
 	int8_t z = 0;
 
+	HTTPStatus = 0;                                // clear HTTP-server's flag register
+	TCPLocalPort = TCP_PORT_HTTP;                  // set port we want to listen to
+
 
 
 	//############################//
@@ -901,6 +904,7 @@ int main(void)
 	temp_init(&getTicks);
 	light_init();
 	acc_init();
+	TCPLowLevelInit();
 
 	light_enable();
 	light_setRange(LIGHT_RANGE_4000);
@@ -1038,244 +1042,249 @@ int main(void)
 	//############################//
 	while (1) {
 
+		if (!(SocketStatus & SOCK_ACTIVE)) TCPPassiveOpen();   // listen for incoming TCP-connection
+		DoNetworkStuff();                                      // handle network and easyWEB-stack
+															   // events
+		HTTPServer();
+
 		//############################//
 		//            DATA            //
 		//############################//
 
-		display_time();
-		oled_putString(1, 40, buf, OLED_COLOR_BLACK, OLED_COLOR_WHITE);//	PRINT DATA ON OLED
-
-
-		//############################//
-		//     TEMPERATURE | LIGHT    //
-		//############################//
-
-
-		if (abs(RTC_GetTime(LPC_RTC, RTC_TIMETYPE_SECOND) - second) >= 5)
-		{
-
-			acc_read(&x, &y, &z);
-			x = x+xoff;
-			y = y+yoff;
-			z = z+zoff;
-
-
-
-			LPC_PINCON->PINSEL0 &= ~(1<<4) & ~(1<<6);
-
-			temperature = temp_read();
-			(void)snprintf(tBuf, 19, "Temperatura: %2d\n\r", temperature);
-
-			LPC_PINCON->PINSEL0 |= (1<<4) | (1<<6);
-
-			writeUARTMsg("\0");
-
-			light = light_read();
-
-			if (light < 100)
-			{
-				writeUARTMsg("Pokoj slabo oswietlony\n\r");
-			}
-			else if(light < 300)
-			{
-				writeUARTMsg("Pokoj srednio oswietlony\n\r");
-			}
-			else if (light < 600)
-			{
-				writeUARTMsg("Pokoj dobrze oswietlony\n\r");
-			}
-			else if (light < 1000)
-			{
-				writeUARTMsg("Pokoj bardzo dobrze oswietlony\n\r");
-			}
-			else
-			{
-				writeUARTMsg("Jest az za jasno...\n\rChyba sie cos pali\n\r");
-			}
-
-			writeUARTMsg(tBuf);
-
-			second = RTC_GetTime(LPC_RTC, RTC_TIMETYPE_SECOND);
-		}
-
-		//############################//
-		//        BUTTON VALUE        //
-		//############################//
-
-		sw3 = ((GPIO_ReadValue(0) >> 4) & 0x01);
-
-		signal1 = ((GPIO_ReadValue(0) >> 5) & 0x01);
-		signal2 = ((GPIO_ReadValue(0) >> 8) & 0x01);	//Ten blizej wlacznika
-
-		colorRgbDiode(signal1, signal2);
-
-		if ((int)sw3 != 0) {
-			sw3_pressed = 0;
-		}
-
-		if (((int)sw3 == 0) && ((int)sw3_pressed == 0)) {
-			sw3_pressed = 1;//	BUTTON PRESSED
-			oled_clearScreen(OLED_COLOR_WHITE);
-
-			oled_putString(1, 9, "Timer:", OLED_COLOR_BLACK, OLED_COLOR_WHITE);
-			oled_putString(1, 20, "IleOsob:", OLED_COLOR_BLACK, OLED_COLOR_WHITE);
-
-			liczbaOsob = 0;
-			(void)snprintf(pBuf, 9, "%2d", liczbaOsob);
-			oled_putString(70, 20, pBuf, OLED_COLOR_BLACK, OLED_COLOR_WHITE);
-			(void)playSong(erase_sound);
-			clearArray(signal_num);
-
-		}
-
-		// 0 Kiedy czujniki sa dobrze podlaczone i nic nie zakloca swiatla
-		// 1 Kiedy jest przerwanie
-
-
-		timestamp = getTicks();
-
-
-		if((int)signal2 == 1 && ((int)signal2_saved != 1))
-		{
-			signal_num[index] = 2;
-			signal_time[index] = timestamp;
-			index += 1;
-			signal2_saved = 1;
-		}
-
-		if((int)signal1 == 1 && ((int)signal1_saved != 1))
-		{
-			signal_num[index] = 1;
-			signal_time[index] = timestamp;
-			index += 1;
-			signal1_saved = 1;
-		}
-
-		if(index > 4){
-			index = 0;
-		}
-
-		if((int)signal2 == 0)
-		{
-			signal2_saved = 0;
-		}
-
-		if((int)signal1 == 0)
-		{
-			signal1_saved = 0;
-		}
-
-
-		if((int)index == 2) // Kiedy mamy zapisane 2 sygnaly
-		{
-			//	Sprawdzamy czy sa z roznych stron oraz czy czas pomiedzy
-			//	przejsciem przez nie jest wiekszy od MIN_ENTRY_TIME
-			//	Oznacza to ze ktos po prostu wszedl lub wyszedl
-			if(signal_num[0] != signal_num[1])
-			{
-				if(signal_time[1] - signal_time[0] > MIN_ENTRY_TIME) // NORMALNE PRZEJSCIE
-				{
-					walk_time = signal_time[1] - signal_time[0];
-					if(signal_num[0] == 2)
-					{
-						if (liczbaOsob != 255)
-						{
-							liczbaOsob += 1;
-						}
-						(void)playSong(buzzer_sound);
-						(void)oledInfo(walk_time, liczbaOsob);
-						(void)makeLEDsColor(0);
-						(void)snprintf(buf_mmc, sizeof(buf_mmc), "%02d:%02d:%02d %02d.%02d.%04dr.", hour, minute, second, day, month, year);
-						save_log(buf_mmc, "log.txt", SDFlag);
-						save_log("\n\rKtos wszedl do pomieszczenia\n\r", "log.txt", SDFlag);
-						writeUARTMsg("Ktos wszedl");
-					}
-					else
-					{
-						if (liczbaOsob != 0)
-						{
-							liczbaOsob -= 1;
-						}
-						(void)playSong(buzzer_sound);
-						(void)oledInfo(walk_time, liczbaOsob);
-						(void)makeLEDsColor(1);
-						(void)snprintf(buf_mmc, sizeof(buf_mmc), "%02d:%02d:%02d %02d.%02d.%04dr.", hour, minute, second, day, month, year);
-						save_log(buf_mmc, "log.txt", SDFlag);
-						save_log("\n\rKtos wyszedl z pomieszczenia\n\r", "log.txt", SDFlag);
-						writeUARTMsg("Ktos wyszedl");
-					}
-					index = 0;
-					msTicks = 0;
-					(void)clearArray(signal_num);
-				}
-				else // ENTRY TIME ZA MALY, PRAWDOPODOBNIE DWIE OSOBY WESZLY NA RAZ Z ROZNYCH STRON
-				{
-					// CZEKAMY NA TO CO ZROBIA
-				}
-			}
-			else // DWA SYGNALY Z TEGO SAMEGO LASERA
-			{
-				index = 0; // PO PROSTU JE IGNORUJEMY
-				(void)clearArray(signal_num);
-			}
-		}
-		if((int)index == 4) // Kiedy mamy zapisane 4 sygnaly
-							// oznacza to ze weszly 2 osoby na raz z roznych kierunkow w roznym czasie
-		{
-			if(signal_num[2] == signal_num[3]) // jesli dwa nastepne sygnaly sa te same
-			{
-				walk_time = signal_time[3] - signal_time[0];
-				//	Przepuszczenie kogos w drzwiach
-				if((int)signal_num[3] == 2) // jesli ostatnim sygnalem jest 2 to wychodzimy
-				{
-					if ((int)liczbaOsob != 0)
-					{
-						liczbaOsob -= 1;
-					}
-					(void)playSong(buzzer_sound);
-					(void)oledInfo(walk_time, liczbaOsob);
-					(void)makeLEDsColor(1);
-					(void)snprintf(buf_mmc, sizeof(buf_mmc), "%02d:%02d:%02d %02d.%02d.%04dr.", hour, minute, second, day, month, year);
-					save_log(buf_mmc, "log.txt", SDFlag);
-					save_log("\n\rKtos wyszedl z pomieszczenia\n\r", "log.txt", SDFlag);
-					writeUARTMsg("Ktos wyszedl");
-				}
-				else
-				{
-					if ((int)liczbaOsob != 255)
-					{
-						liczbaOsob += 1;
-					}
-					(void)playSong(buzzer_sound);
-					(void)oledInfo(walk_time, liczbaOsob);
-					(void)makeLEDsColor(0);
-					(void)snprintf(buf_mmc, sizeof(buf_mmc), "%02d:%02d:%02d %02d.%02d.%04dr.", hour, minute, second, day, month, year);
-					save_log(buf_mmc, "log.txt", SDFlag);
-					save_log("\n\rKtos wszedl do pomieszczenia\n\r", "log.txt", SDFlag);
-					writeUARTMsg("Ktos wszedl");
-				}
-				index = 0;
-				msTicks = 0;
-				(void)clearArray(signal_num);
-			}
-			else // jesli sygnaly sa rozne, oznacza to ze osoby weszly i wyszly
-			{
-				index = 0;
-				(void)clearArray(signal_num);
-			}
-		}
-
-
-		(void)snprintf(pBuf, 9, "%d.%d.%d.%d", signal_num[0], signal_num[1], signal_num[2], signal_num[3]);
-		oled_putString(10, 50, pBuf, OLED_COLOR_BLACK, OLED_COLOR_WHITE);
-
-		(void)snprintf(pBuf, 9, "%2d", liczbaOsob);
-		len = eeprom_write(pBuf, offset, EEPROMLen);
-		if ((int)len != (int)EEPROMLen){
-			(void)snprintf(buf_mmc, sizeof(buf_mmc), "%02d:%02d:%02d %02d.%02d.%04dr.", hour, minute, second, day, month, year);
-			save_log(buf_mmc, "log.txt", SDFlag);
-			save_log("\nBlad zapisu do EEPROM\n", "log.txt", SDFlag);
-		}
+//		display_time();
+//		oled_putString(1, 40, buf, OLED_COLOR_BLACK, OLED_COLOR_WHITE);//	PRINT DATA ON OLED
+//
+//
+//		//############################//
+//		//     TEMPERATURE | LIGHT    //
+//		//############################//
+//
+//
+//		if (abs(RTC_GetTime(LPC_RTC, RTC_TIMETYPE_SECOND) - second) >= 5)
+//		{
+//
+//			acc_read(&x, &y, &z);
+//			x = x+xoff;
+//			y = y+yoff;
+//			z = z+zoff;
+//
+//
+//
+//			LPC_PINCON->PINSEL0 &= ~(1<<4) & ~(1<<6);
+//
+//			temperature = temp_read();
+//			(void)snprintf(tBuf, 19, "Temperatura: %2d\n\r", temperature);
+//
+//			LPC_PINCON->PINSEL0 |= (1<<4) | (1<<6);
+//
+//			writeUARTMsg("\0");
+//
+//			light = light_read();
+//
+//			if (light < 100)
+//			{
+//				writeUARTMsg("Pokoj slabo oswietlony\n\r");
+//			}
+//			else if(light < 300)
+//			{
+//				writeUARTMsg("Pokoj srednio oswietlony\n\r");
+//			}
+//			else if (light < 600)
+//			{
+//				writeUARTMsg("Pokoj dobrze oswietlony\n\r");
+//			}
+//			else if (light < 1000)
+//			{
+//				writeUARTMsg("Pokoj bardzo dobrze oswietlony\n\r");
+//			}
+//			else
+//			{
+//				writeUARTMsg("Jest az za jasno...\n\rChyba sie cos pali\n\r");
+//			}
+//
+//			writeUARTMsg(tBuf);
+//
+//			second = RTC_GetTime(LPC_RTC, RTC_TIMETYPE_SECOND);
+//		}
+//
+//		//############################//
+//		//        BUTTON VALUE        //
+//		//############################//
+//
+//		sw3 = ((GPIO_ReadValue(0) >> 4) & 0x01);
+//
+//		signal1 = ((GPIO_ReadValue(0) >> 5) & 0x01);
+//		signal2 = ((GPIO_ReadValue(0) >> 8) & 0x01);	//Ten blizej wlacznika
+//
+//		colorRgbDiode(signal1, signal2);
+//
+//		if ((int)sw3 != 0) {
+//			sw3_pressed = 0;
+//		}
+//
+//		if (((int)sw3 == 0) && ((int)sw3_pressed == 0)) {
+//			sw3_pressed = 1;//	BUTTON PRESSED
+//			oled_clearScreen(OLED_COLOR_WHITE);
+//
+//			oled_putString(1, 9, "Timer:", OLED_COLOR_BLACK, OLED_COLOR_WHITE);
+//			oled_putString(1, 20, "IleOsob:", OLED_COLOR_BLACK, OLED_COLOR_WHITE);
+//
+//			liczbaOsob = 0;
+//			(void)snprintf(pBuf, 9, "%2d", liczbaOsob);
+//			oled_putString(70, 20, pBuf, OLED_COLOR_BLACK, OLED_COLOR_WHITE);
+//			(void)playSong(erase_sound);
+//			clearArray(signal_num);
+//
+//		}
+//
+//		// 0 Kiedy czujniki sa dobrze podlaczone i nic nie zakloca swiatla
+//		// 1 Kiedy jest przerwanie
+//
+//
+//		timestamp = getTicks();
+//
+//
+//		if((int)signal2 == 1 && ((int)signal2_saved != 1))
+//		{
+//			signal_num[index] = 2;
+//			signal_time[index] = timestamp;
+//			index += 1;
+//			signal2_saved = 1;
+//		}
+//
+//		if((int)signal1 == 1 && ((int)signal1_saved != 1))
+//		{
+//			signal_num[index] = 1;
+//			signal_time[index] = timestamp;
+//			index += 1;
+//			signal1_saved = 1;
+//		}
+//
+//		if(index > 4){
+//			index = 0;
+//		}
+//
+//		if((int)signal2 == 0)
+//		{
+//			signal2_saved = 0;
+//		}
+//
+//		if((int)signal1 == 0)
+//		{
+//			signal1_saved = 0;
+//		}
+//
+//
+//		if((int)index == 2) // Kiedy mamy zapisane 2 sygnaly
+//		{
+//			//	Sprawdzamy czy sa z roznych stron oraz czy czas pomiedzy
+//			//	przejsciem przez nie jest wiekszy od MIN_ENTRY_TIME
+//			//	Oznacza to ze ktos po prostu wszedl lub wyszedl
+//			if(signal_num[0] != signal_num[1])
+//			{
+//				if(signal_time[1] - signal_time[0] > MIN_ENTRY_TIME) // NORMALNE PRZEJSCIE
+//				{
+//					walk_time = signal_time[1] - signal_time[0];
+//					if(signal_num[0] == 2)
+//					{
+//						if (liczbaOsob != 255)
+//						{
+//							liczbaOsob += 1;
+//						}
+//						(void)playSong(buzzer_sound);
+//						(void)oledInfo(walk_time, liczbaOsob);
+//						(void)makeLEDsColor(0);
+//						(void)snprintf(buf_mmc, sizeof(buf_mmc), "%02d:%02d:%02d %02d.%02d.%04dr.", hour, minute, second, day, month, year);
+//						save_log(buf_mmc, "log.txt", SDFlag);
+//						save_log("\n\rKtos wszedl do pomieszczenia\n\r", "log.txt", SDFlag);
+//						writeUARTMsg("Ktos wszedl");
+//					}
+//					else
+//					{
+//						if (liczbaOsob != 0)
+//						{
+//							liczbaOsob -= 1;
+//						}
+//						(void)playSong(buzzer_sound);
+//						(void)oledInfo(walk_time, liczbaOsob);
+//						(void)makeLEDsColor(1);
+//						(void)snprintf(buf_mmc, sizeof(buf_mmc), "%02d:%02d:%02d %02d.%02d.%04dr.", hour, minute, second, day, month, year);
+//						save_log(buf_mmc, "log.txt", SDFlag);
+//						save_log("\n\rKtos wyszedl z pomieszczenia\n\r", "log.txt", SDFlag);
+//						writeUARTMsg("Ktos wyszedl");
+//					}
+//					index = 0;
+//					msTicks = 0;
+//					(void)clearArray(signal_num);
+//				}
+//				else // ENTRY TIME ZA MALY, PRAWDOPODOBNIE DWIE OSOBY WESZLY NA RAZ Z ROZNYCH STRON
+//				{
+//					// CZEKAMY NA TO CO ZROBIA
+//				}
+//			}
+//			else // DWA SYGNALY Z TEGO SAMEGO LASERA
+//			{
+//				index = 0; // PO PROSTU JE IGNORUJEMY
+//				(void)clearArray(signal_num);
+//			}
+//		}
+//		if((int)index == 4) // Kiedy mamy zapisane 4 sygnaly
+//							// oznacza to ze weszly 2 osoby na raz z roznych kierunkow w roznym czasie
+//		{
+//			if(signal_num[2] == signal_num[3]) // jesli dwa nastepne sygnaly sa te same
+//			{
+//				walk_time = signal_time[3] - signal_time[0];
+//				//	Przepuszczenie kogos w drzwiach
+//				if((int)signal_num[3] == 2) // jesli ostatnim sygnalem jest 2 to wychodzimy
+//				{
+//					if ((int)liczbaOsob != 0)
+//					{
+//						liczbaOsob -= 1;
+//					}
+//					(void)playSong(buzzer_sound);
+//					(void)oledInfo(walk_time, liczbaOsob);
+//					(void)makeLEDsColor(1);
+//					(void)snprintf(buf_mmc, sizeof(buf_mmc), "%02d:%02d:%02d %02d.%02d.%04dr.", hour, minute, second, day, month, year);
+//					save_log(buf_mmc, "log.txt", SDFlag);
+//					save_log("\n\rKtos wyszedl z pomieszczenia\n\r", "log.txt", SDFlag);
+//					writeUARTMsg("Ktos wyszedl");
+//				}
+//				else
+//				{
+//					if ((int)liczbaOsob != 255)
+//					{
+//						liczbaOsob += 1;
+//					}
+//					(void)playSong(buzzer_sound);
+//					(void)oledInfo(walk_time, liczbaOsob);
+//					(void)makeLEDsColor(0);
+//					(void)snprintf(buf_mmc, sizeof(buf_mmc), "%02d:%02d:%02d %02d.%02d.%04dr.", hour, minute, second, day, month, year);
+//					save_log(buf_mmc, "log.txt", SDFlag);
+//					save_log("\n\rKtos wszedl do pomieszczenia\n\r", "log.txt", SDFlag);
+//					writeUARTMsg("Ktos wszedl");
+//				}
+//				index = 0;
+//				msTicks = 0;
+//				(void)clearArray(signal_num);
+//			}
+//			else // jesli sygnaly sa rozne, oznacza to ze osoby weszly i wyszly
+//			{
+//				index = 0;
+//				(void)clearArray(signal_num);
+//			}
+//		}
+//
+//
+//		(void)snprintf(pBuf, 9, "%d.%d.%d.%d", signal_num[0], signal_num[1], signal_num[2], signal_num[3]);
+//		oled_putString(10, 50, pBuf, OLED_COLOR_BLACK, OLED_COLOR_WHITE);
+//
+//		(void)snprintf(pBuf, 9, "%2d", liczbaOsob);
+//		len = eeprom_write(pBuf, offset, EEPROMLen);
+//		if ((int)len != (int)EEPROMLen){
+//			(void)snprintf(buf_mmc, sizeof(buf_mmc), "%02d:%02d:%02d %02d.%02d.%04dr.", hour, minute, second, day, month, year);
+//			save_log(buf_mmc, "log.txt", SDFlag);
+//			save_log("\nBlad zapisu do EEPROM\n", "log.txt", SDFlag);
+//		}
 
 	}
 

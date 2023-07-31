@@ -1,0 +1,17 @@
+lwip/src/core/ipv4/autoip.o lwip/src/core/ipv4/autoip.d: \
+ ../lwip/src/core/ipv4/autoip.c \
+ C:\Users\student\Documents\MCUXpressoIDE_11.3.1_5262\tOMASZworkspace\webserver\lwip\inc/lwip/opt.h \
+ C:\Users\student\Documents\MCUXpressoIDE_11.3.1_5262\tOMASZworkspace\webserver\example\inc/lwipopts.h \
+ C:\Users\student\Documents\MCUXpressoIDE_11.3.1_5262\tOMASZworkspace\webserver\lwip\inc/lwip/debug.h \
+ C:\Users\student\Documents\MCUXpressoIDE_11.3.1_5262\tOMASZworkspace\webserver\lwip\inc/lwip/arch.h \
+ C:\Users\student\Documents\MCUXpressoIDE_11.3.1_5262\tOMASZworkspace\webserver\lwip\inc/arch/cc.h
+
+C:\Users\student\Documents\MCUXpressoIDE_11.3.1_5262\tOMASZworkspace\webserver\lwip\inc/lwip/opt.h:
+
+C:\Users\student\Documents\MCUXpressoIDE_11.3.1_5262\tOMASZworkspace\webserver\example\inc/lwipopts.h:
+
+C:\Users\student\Documents\MCUXpressoIDE_11.3.1_5262\tOMASZworkspace\webserver\lwip\inc/lwip/debug.h:
+
+C:\Users\student\Documents\MCUXpressoIDE_11.3.1_5262\tOMASZworkspace\webserver\lwip\inc/lwip/arch.h:
+
+C:\Users\student\Documents\MCUXpressoIDE_11.3.1_5262\tOMASZworkspace\webserver\lwip\inc/arch/cc.h:

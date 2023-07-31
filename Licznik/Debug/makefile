@@ -29,7 +29,7 @@ all: Licznik.axf
 Licznik.axf: $(OBJS) $(USER_OBJS)
 	@echo 'Building target: $@'
 	@echo 'Invoking: MCU Linker'
-	arm-none-eabi-gcc -nostdlib -L"C:\Users\student\Documents\Licznik\Lib_CMSISv1p30_LPC17xx\Debug" -L"C:\Users\student\Documents\Licznik\Lib_EaBaseBoard\Debug" -L"C:\Users\student\Documents\Licznik\Lib_MCU\Debug" -Xlinker --gc-sections -Xlinker -Map=Licznik.map -mcpu=cortex-m3 -mthumb -T "Licznik_Debug.ld" -o "Licznik.axf" $(OBJS) $(USER_OBJS) $(LIBS)
+	arm-none-eabi-gcc -nostdlib -L"C:\Users\student\Desktop\embedded_systems-main\Lib_CMSISv1p30_LPC17xx\Debug" -L"C:\Users\student\Desktop\embedded_systems-main\Lib_EaBaseBoard\Debug" -L"C:\Users\student\Desktop\embedded_systems-main\Lib_MCU\Debug" -Xlinker --gc-sections -Xlinker -Map=Licznik.map -mcpu=cortex-m3 -mthumb -T "Licznik_Debug.ld" -o "Licznik.axf" $(OBJS) $(USER_OBJS) $(LIBS)
 	@echo 'Finished building target: $@'
 	@echo ' '
 	$(MAKE) --no-print-directory post-build
