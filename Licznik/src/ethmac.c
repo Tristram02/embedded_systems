@@ -43,7 +43,7 @@ void WriteToPHY (int reg, int writeval)
 }
 
 // CodeRed - function added to read from external ethernet PHY chip
-unsigned short ReadFromPHY (unsigned char reg) 
+unsigned short ReadFromPHY (unsigned char reg)
 {
   unsigned int loop;
   // Set up address to access in MII Mgmt Address Register
@@ -84,7 +84,7 @@ void Init8900(void)
 
   Write8900(ADD_PORT, PP_SelfST);
   while (!(Read8900(DATA_PORT) & INIT_DONE));    // wait until chip-reset is done
-  
+
   for (i = 0; i < sizeof InitSeq / sizeof (TInitSeq); i++) // configure the CS8900
   {
     Write8900(ADD_PORT, InitSeq[i].Addr);
@@ -108,22 +108,22 @@ void Init_EthMAC(void)
   volatile unsigned int loop;
   unsigned phy_in_use = 0;
   unsigned phy_linkstatus_reg;
-  unsigned phy_linkstatus_mask;  
-  
+  unsigned phy_linkstatus_mask;
+
   // Set Ethernet power/clock control bit
-  LPC_SC->PCONP |= PCENET; 
+  LPC_SC->PCONP |= PCENET;
 
   //Enable Ethernet pins through PINSEL registers
-  LPC_PINCON->PINSEL2 = ENET_PINSEL2_CONFIG; 
+  LPC_PINCON->PINSEL2 = ENET_PINSEL2_CONFIG;
   LPC_PINCON->PINSEL3 = (LPC_PINCON->PINSEL3 & ~(ENET_PINSEL3_MASK)) | ENET_PINSEL3_CONFIG;
 
   // Set up MAC Configuration Register 1
-  LPC_EMAC->MAC1 = MAC1_RES_TX | MAC1_RES_MCS_TX | MAC1_RES_RX | 
+  LPC_EMAC->MAC1 = MAC1_RES_TX | MAC1_RES_MCS_TX | MAC1_RES_RX |
          MAC1_RES_MCS_RX |MAC1_SIM_RES | MAC1_SOFT_RES;
 
   // Set up MAC Command Register
   LPC_EMAC->Command = CR_REG_RES | CR_TX_RES | CR_RX_RES | CR_PASS_RUNT_FRM;
-  
+
   // Short delay
   for (loop = 100; loop; loop--);
 
@@ -173,7 +173,7 @@ void Init_EthMAC(void)
 	  phy_in_use = LAN8720_ID;
   }
 
-  if (phy_in_use != 0) {	  
+  if (phy_in_use != 0) {
 	  // Safe to configure the PHY device
 
     // Set PHY to autonegotiation link speed
@@ -260,8 +260,8 @@ void Init_EthMAC(void)
   LPC_EMAC->SA1 = (MYMAC_3 << 8) | MYMAC_4; // Station address 1 Reg
   LPC_EMAC->SA2 = (MYMAC_5 << 8) | MYMAC_6; // Station address 2 Reg
 
- 
-  // Now initialise the Rx descriptors    
+
+  // Now initialise the Rx descriptors
   for (loop = 0; loop < NUM_RX_FRAG; loop++) {
     RX_DESC_PACKET(loop)  = RX_BUF(loop);
     RX_DESC_CTRL(loop)    = RCTRL_INT | (ETH_FRAG_SIZE-1);
@@ -278,7 +278,7 @@ void Init_EthMAC(void)
   //  Set Receive Consume Index register to 0
   LPC_EMAC->RxConsumeIndex  = 0;
 
-  // Now initialise the Tx descriptors 
+  // Now initialise the Tx descriptors
   for (loop = 0; loop < NUM_TX_FRAG; loop++) {
     TX_DESC_PACKET(loop) = TX_BUF(loop);
     TX_DESC_CTRL(loop)   = 0;
@@ -293,13 +293,13 @@ void Init_EthMAC(void)
   LPC_EMAC->TxDescriptorNumber = NUM_TX_FRAG-1;
   //  Set Transmit Consume Index register to 0
   LPC_EMAC->TxProduceIndex  = 0;
- 
+
   // Receive Broadcast and Perfect Match Packets
 
 
 
-  LPC_EMAC->RxFilterCtrl = RFC_BCAST_EN | RFC_PERFECT_EN;					 
- 
+  LPC_EMAC->RxFilterCtrl = RFC_BCAST_EN | RFC_PERFECT_EN;
+
   // Enable interrupts MAC Module Control Interrupt Enable Register
   LPC_EMAC->IntEnable = INT_RX_DONE | INT_TX_DONE;
 
@@ -323,7 +323,7 @@ void Write8900(unsigned char Address, unsigned int Data)
 {
   P5DIR = 0xFF;                                  // data port to output
   P3OUT = IOR | IOW | Address;                   // put address on bus
-  
+
   P5OUT = Data;                                  // write low order byte to data bus
   P3OUT &= ~IOW;                                 // toggle IOW-signal
   P3OUT = IOR | IOW | (Address + 1);             // and put next address on bus
@@ -342,7 +342,7 @@ void WriteFrame8900(unsigned int Data)
 {
   P5DIR = 0xFF;                                  // data port to output
   P3OUT = IOR | IOW | TX_FRAME_PORT;             // put address on bus
-  
+
   P5OUT = Data;                                  // write low order byte to data bus
   P3OUT &= ~IOW;                                 // toggle IOW-signal
   P3OUT = IOR | IOW | (TX_FRAME_PORT + 1);       // and put next address on bus
@@ -371,12 +371,12 @@ void WriteFrame_EthMAC(unsigned short Data)
 void CopyToFrame8900(void *Source, unsigned int Size)
 {
   P5DIR = 0xFF;                                  // data port to output
-  
+
   while (Size > 1) {
     WriteFrame8900(*((unsigned int *)Source)++);
     Size -= 2;
   }
-  
+
   if (Size)                                      // if odd num. of bytes...
     WriteFrame8900(*(unsigned char *)Source);    // write leftover byte (the LAN-controller
 }                                                // ignores the highbyte)
@@ -415,15 +415,15 @@ unsigned int Read8900(unsigned char Address)
   P3OUT = IOR | IOW | Address;                   // put address on bus
 
   P3OUT &= ~IOR;                                 // IOR-signal low
-  
+
   ReturnValue = P5IN;                            // get low order byte from data bus
   P3OUT = IOR | IOW | (Address + 1);             // IOR high and put next address on bus
   P3OUT &= ~IOR;                                 // IOR-signal low
 
   ReturnValue |= P5IN << 8;                      // get high order byte from data bus
-  
+
   P3OUT |= IOR;
-  
+
   return ReturnValue;
 }
 */
@@ -439,15 +439,15 @@ unsigned int ReadFrame8900(void)
   P3OUT = IOR | IOW | RX_FRAME_PORT;             // access to RX_FRAME_PORT
 
   P3OUT &= ~IOR;                                 // IOR-signal low
-  
+
   ReturnValue = P5IN;                            // get 1st byte from data bus (low-byte)
   P3OUT = IOR | IOW | (RX_FRAME_PORT + 1);       // IOR high and put next address on bus
   P3OUT &= ~IOR;                                 // IOR-signal low
 
   ReturnValue |= P5IN << 8;                      // get 2nd byte from data bus (high-byte)
-  
+
   P3OUT |= IOR;
-  
+
   return ReturnValue;
 }
 */
@@ -475,15 +475,15 @@ unsigned int ReadFrameBE8900(void)
   P3OUT = IOR | IOW | RX_FRAME_PORT;             // access to RX_FRAME_PORT
 
   P3OUT &= ~IOR;                                 // IOR-signal low
-  
+
   ReturnValue = P5IN << 8;                       // get 1st byte from data bus (high-byte)
   P3OUT = IOR | IOW | (RX_FRAME_PORT + 1);       // IOR high and put next address on bus
   P3OUT &= ~IOR;                                 // IOR-signal low
 
   ReturnValue |= P5IN;                           // get 2nd byte from data bus (low-byte)
-  
+
   P3OUT |= IOR;
-  
+
   return ReturnValue;
 }
 */
@@ -511,15 +511,15 @@ unsigned int ReadHB1ST8900(unsigned char Address)
   P3OUT = IOR | IOW | (Address + 1);             // put address on bus
 
   P3OUT &= ~IOR;                                 // IOR-signal low
-  
+
   ReturnValue = P5IN << 8;                       // get high order byte from data bus
   P3OUT = IOR | IOW | Address;                   // IOR high and put next address on bus
   P3OUT &= ~IOR;                                 // IOR-signal low
 
   ReturnValue |= P5IN;                           // get low order byte from data bus
-  
+
   P3OUT |= IOR;
-  
+
   return ReturnValue;
 }
 */
@@ -538,7 +538,7 @@ void CopyFromFrame8900(void *Dest, unsigned int Size)
     *((unsigned int *)Dest)++ = ReadFrame8900();
     Size -= 2;
   }
-  
+
   if (Size)                                      // check for leftover byte...
     *(unsigned char *)Dest = ReadFrame8900();    // the LAN-Controller will return 0
 }                                                // for the highbyte
@@ -546,14 +546,14 @@ void CopyFromFrame8900(void *Dest, unsigned int Size)
 
 void CopyFromFrame_EthMAC(void *Dest, unsigned short Size)
 {
-  unsigned short *pDest; 
+  unsigned short *pDest;
 
   pDest = Dest;
   while (Size > 1) {
     *pDest++ = ReadFrame_EthMAC();
     Size -= 2;
   }
-  
+
   if (Size) {                                         // check for leftover byte...
     *(unsigned char *)pDest = (char)ReadFrame_EthMAC();// the LAN-Controller will return 0
   }                                                   // for the highbyte
@@ -569,7 +569,7 @@ void CopyFromFrame_EthMAC(void *Dest, unsigned short Size)
 void DummyReadFrame_EthMAC(unsigned short Size)       // discards an EVEN number of bytes
 {                                                // from RX-fifo
   while (Size > 1) {
-// Code Red - updated for LPC1776	  
+// Code Red - updated for LPC1776
 //    ReadFrame8900();
     ReadFrame_EthMAC();
     Size -= 2;
@@ -606,9 +606,9 @@ unsigned int Rdy4Tx(void)
 
   // One the LPC the ethernet controller transmits
   // much faster than the CPU can load its buffers
-  // so will always be ready to accept frame	
-  return (1); 
-               // 
+  // so will always be ready to accept frame
+  return (1);
+               //
 }
 
 // CodeRed - New function
@@ -639,9 +639,9 @@ void StopReadingFrame(void)
 
 // CodeRed - new function to check if frame has been received
 unsigned int CheckIfFrameReceived(void)
-{ 
-  if (LPC_EMAC->RxProduceIndex != LPC_EMAC->RxConsumeIndex) 
+{
+  if (LPC_EMAC->RxProduceIndex != LPC_EMAC->RxConsumeIndex)
     return(1); // Yes, packet received
-  else 
+  else
     return(0);
 }

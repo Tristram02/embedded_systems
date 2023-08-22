@@ -42,21 +42,21 @@ const unsigned char MyMAC[6] =   // "M1-M2-M3-M4-M5-M6"
 void TCPLowLevelInit(void)
 {
 // CodeRed - comment out original 8900 specific code
-/*	
+/*
   BCSCTL1 &= ~DIVA0;                             // ACLK = XT1 / 4 = 2 MHz
   BCSCTL1 |= DIVA1;
   TACTL = ID1 | ID0 | TASSEL0 | TAIE;            // stop timer, use ACLK / 8 = 250 kHz, gen. int.
   TACTL |= MC1;                                  // start timer in continuous up-mode
   _EINT();                                       // enable interrupts
-  
+
   Init8900();
 */
   LPC_GPIO1->FIODIR = 1 << 25;               // P1.25 defined as Output (LED)
-	
+
   Start_SysTick10ms();	// Start SysTick timer running (10ms ticks)
-  
+
   Init_EthMAC();
-	
+
   TransmitControl = 0;
   TCPFlags = 0;
   TCPStateMachine = CLOSED;
@@ -87,11 +87,11 @@ void TCPActiveOpen(void)
   {
     TCPFlags |= TCP_ACTIVE_OPEN;                 // let's do an active open!
     TCPFlags &= ~IP_ADDR_RESOLVED;               // we haven't opponents MAC yet
-  
+
     PrepareARP_REQUEST();                        // ask for MAC by sending a broadcast
     LastFrameSent = ARP_REQUEST;
     TCPStartRetryTimer();
-    SocketStatus = SOCK_ACTIVE;                  // reset, socket now active    
+    SocketStatus = SOCK_ACTIVE;                  // reset, socket now active
   }
 }
 
@@ -141,10 +141,10 @@ void TCPTransmitTxBuffer(void)
     {
       SocketStatus &= ~SOCK_TX_BUF_RELEASED;               // occupy tx-buffer
       TCPUNASeqNr += TCPTxDataCount;                       // advance UNA
-      
+
       TxFrame1Size = ETH_HEADER_SIZE + IP_HEADER_SIZE + TCP_HEADER_SIZE + TCPTxDataCount;
       TransmitControl |= SEND_FRAME1;
-      
+
       LastFrameSent = TCP_DATA_FRAME;
       TCPStartRetryTimer();
     }
@@ -153,7 +153,7 @@ void TCPTransmitTxBuffer(void)
 // CodeRed - New function to check if received frame
 // was a broadcast message
 
-// Reads the length of the received ethernet frame and checks if the 
+// Reads the length of the received ethernet frame and checks if the
 // destination address is a broadcast message or not
 unsigned int BroadcastMessage(void)
 {
@@ -164,11 +164,11 @@ unsigned int BroadcastMessage(void)
   // Read destination address
   CopyFromFrame_EthMAC(&FrameDestination,  6);
   // Save it for reply
-  CopyFromFrame_EthMAC(&RecdFrameMAC, 6);          
+  CopyFromFrame_EthMAC(&RecdFrameMAC, 6);
 
-  if ((FrameDestination[0] == 0xFFFF) && 
-      (FrameDestination[1] == 0xFFFF) && 
-      (FrameDestination[2] == 0xFFFF)) { 
+  if ((FrameDestination[0] == 0xFFFF) &&
+      (FrameDestination[1] == 0xFFFF) &&
+      (FrameDestination[2] == 0xFFFF)) {
     return(1); // Broadcast message
   } else {
     return (0);
@@ -195,24 +195,24 @@ void DoNetworkStuff(void)
     if (ActRxEvent & RX_BROADCAST) ProcessEthBroadcastFrame();
   }
 */
-	
+
   // Check to see if packet received
-  if (CheckIfFrameReceived())                     
+  if (CheckIfFrameReceived())
   {
-	// Was it a broadcast message?  
+	// Was it a broadcast message?
     if (BroadcastMessage()) {
       ProcessEthBroadcastFrame();
-    } 
+    }
     else {
-      ProcessEthIAFrame(); 
+      ProcessEthIAFrame();
     }
     // now release ethernet controller buffer
-    StopReadingFrame();                             
+    StopReadingFrame();
   }
-  
-  
+
+
 // CodeRed - now back to original code
-  
+
   if (TCPFlags & TCP_TIMER_RUNNING)
     if (TCPFlags & TIMER_TYPE_RETRY)
     {
@@ -310,7 +310,7 @@ void DoNetworkStuff(void)
   {
     PrepareTCP_DATA_FRAME();                     // build frame w/ actual SEQ, ACK....
     RequestSend(TxFrame1Size);
-  
+
     if (Rdy4Tx())                                // CS8900 ready to accept our frame?
       SendFrame1();                              // (see note above)
     else {
@@ -332,17 +332,17 @@ void ProcessEthBroadcastFrame(void)
 //  unsigned int TargetIP[2];
   unsigned short TargetIP[2];
 
-// CodeRed - remove CS8900 specific code block  
+// CodeRed - remove CS8900 specific code block
 /*
   // next two words MUST be read with High-Byte 1st (CS8900 AN181 Page 2)
   ReadHB1ST8900(RX_FRAME_PORT);                  // ignore RxStatus Word
-  RecdFrameLength = ReadHB1ST8900(RX_FRAME_PORT);// get real length of frame 
-    
+  RecdFrameLength = ReadHB1ST8900(RX_FRAME_PORT);// get real length of frame
+
   DummyReadFrame8900(6);                         // ignore DA (FF-FF-FF-FF-FF-FF)
   CopyFromFrame8900(&RecdFrameMAC, 6);           // store SA (for our answer)
 // Code Red - end of CS8900 specific block
 */
-  
+
   if (ReadFrameBE_EthMAC() == FRAME_ARP)            // get frame type, check for ARP
     if (ReadFrameBE_EthMAC() == HARDW_ETH10)        // Ethernet frame
       if (ReadFrameBE_EthMAC() == FRAME_IP)         // check protocol
@@ -369,11 +369,11 @@ void ProcessEthIAFrame(void)
   unsigned short TargetIP[2];
   unsigned char ProtocolType;
 // CodeRed - next few lines not needed for LPC1768 port
-/*  
+/*
   // next two words MUST be read with High-Byte 1st (CS8900 AN181 Page 2)
   ReadHB1ST_EthMAC(RX_FRAME_PORT);                  // ignore RxStatus Word
-  RecdFrameLength = ReadHB1ST_EthMAC(RX_FRAME_PORT);// get real length of frame 
-  
+  RecdFrameLength = ReadHB1ST_EthMAC(RX_FRAME_PORT);// get real length of frame
+
   DummyReadFrame_EthMAC(6);                         // ignore DA
   CopyFromFrame_EthMAC(&RecdFrameMAC, 6);           // store SA (for our answer)
 */
@@ -403,7 +403,7 @@ void ProcessEthIAFrame(void)
         if (!(ReadFrameBE_EthMAC() & (IP_FLAG_MOREFRAG | IP_FRAGOFS_MASK)))  // only unfragm. frames
         {
 // CodeRed - add mask
-//        ProtocolType = ReadFrameBE_EthMAC() ;                // get protocol, ignore TTL        	
+//        ProtocolType = ReadFrameBE_EthMAC() ;                // get protocol, ignore TTL
           ProtocolType = ReadFrameBE_EthMAC() & 0xFF ;                // get protocol, ignore TTL
           ReadFrameBE_EthMAC();                               // ignore checksum
           CopyFromFrame_EthMAC(&RecdFrameIP, 4);              // get source IP
@@ -415,7 +415,7 @@ void ProcessEthIAFrame(void)
               case PROT_TCP  : { ProcessTCPFrame(); break; }
               case PROT_UDP  : break;                      // not implemented!
             }
-        }      
+        }
       }
       break;
     }
@@ -429,7 +429,7 @@ void ProcessEthIAFrame(void)
 void ProcessICMPFrame(void)
 {
 // CodeRed - change from int to short
-//unsigned int ICMPTypeAndCode;	
+//unsigned int ICMPTypeAndCode;
   unsigned short ICMPTypeAndCode;
 
   ICMPTypeAndCode = ReadFrameBE_EthMAC();           // get Message Type and Code
@@ -450,7 +450,7 @@ void ProcessICMPFrame(void)
 
 void ProcessTCPFrame(void)
 {
-// CodeRed - change from int to short	
+// CodeRed - change from int to short
 /*  unsigned int TCPSegSourcePort;                 // segment's source port
   unsigned int TCPSegDestPort;                   // segment's destination port
   unsigned long TCPSegSeq;                       // segment's sequence number
@@ -466,8 +466,8 @@ void ProcessTCPFrame(void)
   unsigned short TCPCode;                          // TCP code and header length
   unsigned char TCPHeaderSize;                   // real TCP header length
   unsigned short NrOfDataBytes;                    // real number of data
-  
-  
+
+
   TCPSegSourcePort = ReadFrameBE_EthMAC();                    // get ports
   TCPSegDestPort = ReadFrameBE_EthMAC();
 
@@ -513,7 +513,7 @@ void ProcessTCPFrame(void)
         }
       }
       break;
-    }  
+    }
     case LISTENING :
     {
       if (!(TCPCode & TCP_CODE_RST))                       // ignore segment containing RST
@@ -548,7 +548,7 @@ void ProcessTCPFrame(void)
                                                       // to current session
 
       if (TCPSegSourcePort != TCPRemotePort) break;   // drop segment if port doesn't match
-      
+
       if (TCPCode & TCP_CODE_ACK)                // ACK field significant?
         if (TCPSegAck != TCPUNASeqNr)            // is our ISN ACKed?
         {
@@ -570,7 +570,7 @@ void ProcessTCPFrame(void)
         }
         break;                                   // drop segment
       }
-        
+
       if (TCPCode & TCP_CODE_SYN)                // SYN??
       {
         TCPAckNr = TCPSegSeq;                    // get opponents ISN
@@ -605,7 +605,7 @@ void ProcessTCPFrame(void)
       if (TCPSegSourcePort != TCPRemotePort) break;   // drop segment if port doesn't match
 
       if (TCPSegSeq != TCPAckNr) break;               // drop if it's not the segment we expect
-            
+
       if (TCPCode & TCP_CODE_RST)                // RST??
       {
         TCPStateMachine = CLOSED;                // close the state machine
@@ -654,7 +654,7 @@ void ProcessTCPFrame(void)
             break;
           }
         }
-        
+
         if (TCPStateMachine == ESTABLISHED)      // if true, give the frame buffer back
           SocketStatus |= SOCK_TX_BUF_RELEASED;  // to user
       }
@@ -664,16 +664,16 @@ void ProcessTCPFrame(void)
           if (!(SocketStatus & SOCK_DATA_AVAILABLE))       // rx data-buffer empty?
           {
             DummyReadFrame_EthMAC(6);                         // ignore window, checksum, urgent pointer
-// CodeRed - removed unrequired &     
+// CodeRed - removed unrequired &
 //           CopyFromFrame_EthMAC(&RxTCPBuffer, NrOfDataBytes);// fetch data and
             CopyFromFrame_EthMAC(RxTCPBuffer, NrOfDataBytes);// fetch data and
-    
+
             TCPRxDataCount = NrOfDataBytes;                // ...tell the user...
             SocketStatus |= SOCK_DATA_AVAILABLE;           // indicate the new data to user
             TCPAckNr += NrOfDataBytes;
             PrepareTCP_FRAME(TCP_CODE_ACK);                // ACK rec'd data
           }
-              
+
       if (TCPCode & TCP_CODE_FIN)                // FIN??
       {
         switch (TCPStateMachine)
@@ -694,7 +694,7 @@ void ProcessTCPFrame(void)
           {
             TCPStartTimeWaitTimer();
             TCPStateMachine = TIME_WAIT;
-            SocketStatus &= ~SOCK_CONNECTED;            
+            SocketStatus &= ~SOCK_CONNECTED;
             break;
           }
           case TIME_WAIT :
@@ -716,18 +716,18 @@ void ProcessTCPFrame(void)
 void PrepareARP_REQUEST(void)
 {
   // Ethernet
-	
-// CodeRed - added char cast	
-//	memset(&TxFrame2[ETH_DA_OFS], 0xFF, 6); 
+
+// CodeRed - added char cast
+//	memset(&TxFrame2[ETH_DA_OFS], 0xFF, 6);
   memset(&TxFrame2[ETH_DA_OFS], (char)0xFF, 6);                  // we don't know opposites MAC!
   memcpy(&TxFrame2[ETH_SA_OFS], &MyMAC, 6);
-// Code Red - int-> short  
+// Code Red - int-> short
 //  *(unsigned int *)&TxFrame2[ETH_TYPE_OFS] = SWAPB(FRAME_ARP);
   *(unsigned short *)&TxFrame2[ETH_TYPE_OFS] = SWAPB(FRAME_ARP);
 
   // ARP
-  
-// CodeRed - int-> short  
+
+// CodeRed - int-> short
 /*  *(unsigned int *)&TxFrame2[ARP_HARDW_OFS] = SWAPB(HARDW_ETH10);
   *(unsigned int *)&TxFrame2[ARP_PROT_OFS] = SWAPB(FRAME_IP);
   *(unsigned int *)&TxFrame2[ARP_HLEN_PLEN_OFS] = SWAPB(IP_HLEN_PLEN);
@@ -759,18 +759,18 @@ void PrepareARP_ANSWER(void)
   // Ethernet
   memcpy(&TxFrame2[ETH_DA_OFS], &RecdFrameMAC, 6);
   memcpy(&TxFrame2[ETH_SA_OFS], &MyMAC, 6);
-// CodeRed - int-> short  
+// CodeRed - int-> short
 //  *(unsigned int *)&TxFrame2[ETH_TYPE_OFS] = SWAPB(FRAME_ARP);
   *(unsigned short *)&TxFrame2[ETH_TYPE_OFS] = SWAPB(FRAME_ARP);
 
   // ARP
 
-// CodeRed - int-> short  
+// CodeRed - int-> short
 /*  *(unsigned int *)&TxFrame2[ARP_HARDW_OFS] = SWAPB(HARDW_ETH10);
   *(unsigned int *)&TxFrame2[ARP_PROT_OFS] = SWAPB(FRAME_IP);
   *(unsigned int *)&TxFrame2[ARP_HLEN_PLEN_OFS] = SWAPB(IP_HLEN_PLEN);
   *(unsigned int *)&TxFrame2[ARP_OPCODE_OFS] = SWAPB(OP_ARP_ANSWER);
-*/  
+*/
   *(unsigned short *)&TxFrame2[ARP_HARDW_OFS] = SWAPB(HARDW_ETH10);
   *(unsigned short *)&TxFrame2[ARP_PROT_OFS] = SWAPB(FRAME_IP);
   *(unsigned short *)&TxFrame2[ARP_HLEN_PLEN_OFS] = SWAPB(IP_HLEN_PLEN);
@@ -789,10 +789,10 @@ void PrepareARP_ANSWER(void)
 
 void PrepareICMP_ECHO_REPLY(void)
 {
-// CodeRed - int-> short  
+// CodeRed - int-> short
 //  unsigned int ICMPDataCount;
   unsigned short ICMPDataCount;
-  
+
   if (RecdIPFrameLength > MAX_ETH_TX_DATA_SIZE)                      // don't overload TX-buffer
     ICMPDataCount = MAX_ETH_TX_DATA_SIZE - IP_HEADER_SIZE - ICMP_HEADER_SIZE;
   else
@@ -802,13 +802,13 @@ void PrepareICMP_ECHO_REPLY(void)
   memcpy(&TxFrame2[ETH_DA_OFS], &RecdFrameMAC, 6);
   memcpy(&TxFrame2[ETH_SA_OFS], &MyMAC, 6);
 
-// CodeRed - int-> short   
+// CodeRed - int-> short
 //  *(unsigned int *)&TxFrame2[ETH_TYPE_OFS] = SWAPB(FRAME_IP);
   *(unsigned short *)&TxFrame2[ETH_TYPE_OFS] = SWAPB(FRAME_IP);
-  
-  // IP 
-  
-// CodeRed - int-> short  
+
+  // IP
+
+// CodeRed - int-> short
 /*  *(unsigned int *)&TxFrame2[IP_VER_IHL_TOS_OFS] = SWAPB(IP_VER_IHL);
   WriteWBE(&TxFrame2[IP_TOTAL_LENGTH_OFS], IP_HEADER_SIZE + ICMP_HEADER_SIZE + ICMPDataCount);
   *(unsigned int *)&TxFrame2[IP_IDENT_OFS] = 0;
@@ -830,8 +830,8 @@ void PrepareICMP_ECHO_REPLY(void)
   *(unsigned short *)&TxFrame2[IP_HEAD_CHKSUM_OFS] = CalcChecksum(&TxFrame2[IP_VER_IHL_TOS_OFS], IP_HEADER_SIZE, 0);
 
   // ICMP
-  
-// CodeRed - int-> short   
+
+// CodeRed - int-> short
 /*  *(unsigned int *)&TxFrame2[ICMP_TYPE_CODE_OFS] = SWAPB(ICMP_ECHO_REPLY << 8);
   *(unsigned int *)&TxFrame2[ICMP_CHKSUM_OFS] = 0;                   // initialize checksum field
 
@@ -843,8 +843,8 @@ void PrepareICMP_ECHO_REPLY(void)
 
   CopyFromFrame_EthMAC(&TxFrame2[ICMP_DATA_OFS], ICMPDataCount);        // get data to echo...
   *(unsigned short *)&TxFrame2[ICMP_CHKSUM_OFS] = CalcChecksum(&TxFrame2[IP_DATA_OFS], ICMPDataCount + ICMP_HEADER_SIZE, 0);
-  
-  
+
+
   TxFrame2Size = ETH_HEADER_SIZE + IP_HEADER_SIZE + ICMP_HEADER_SIZE + ICMPDataCount;
   TransmitControl |= SEND_FRAME2;
 }
@@ -861,20 +861,20 @@ void PrepareTCP_FRAME(unsigned short TCPCode)
   memcpy(&TxFrame2[ETH_DA_OFS], &RemoteMAC, 6);
   memcpy(&TxFrame2[ETH_SA_OFS], &MyMAC, 6);
 
-// CodeRed - int-> short   
+// CodeRed - int-> short
 //  *(unsigned int *)&TxFrame2[ETH_TYPE_OFS] = SWAPB(FRAME_IP);
   *(unsigned short *)&TxFrame2[ETH_TYPE_OFS] = SWAPB(FRAME_IP);
-  
+
   // IP
 
-// Code Red - int-> short   
+// Code Red - int-> short
 /*  *(unsigned int *)&TxFrame2[IP_VER_IHL_TOS_OFS] = SWAPB(IP_VER_IHL | IP_TOS_D);
 
   if (TCPCode & TCP_CODE_SYN)                    // if SYN, we want to use the MSS option
     *(unsigned int *)&TxFrame2[IP_TOTAL_LENGTH_OFS] = SWAPB(IP_HEADER_SIZE + TCP_HEADER_SIZE + TCP_OPT_MSS_SIZE);
   else
     *(unsigned int *)&TxFrame2[IP_TOTAL_LENGTH_OFS] = SWAPB(IP_HEADER_SIZE + TCP_HEADER_SIZE);
-    
+
   *(unsigned int *)&TxFrame2[IP_IDENT_OFS] = 0;
   *(unsigned int *)&TxFrame2[IP_FLAGS_FRAG_OFS] = 0;
   *(unsigned int *)&TxFrame2[IP_TTL_PROT_OFS] = SWAPB((DEFAULT_TTL << 8) | PROT_TCP);
@@ -889,7 +889,7 @@ void PrepareTCP_FRAME(unsigned short TCPCode)
     *(unsigned short *)&TxFrame2[IP_TOTAL_LENGTH_OFS] = SWAPB(IP_HEADER_SIZE + TCP_HEADER_SIZE + TCP_OPT_MSS_SIZE);
   else
     *(unsigned short *)&TxFrame2[IP_TOTAL_LENGTH_OFS] = SWAPB(IP_HEADER_SIZE + TCP_HEADER_SIZE);
-    
+
   *(unsigned short *)&TxFrame2[IP_IDENT_OFS] = 0;
   *(unsigned short *)&TxFrame2[IP_FLAGS_FRAG_OFS] = 0;
   *(unsigned short *)&TxFrame2[IP_TTL_PROT_OFS] = SWAPB((DEFAULT_TTL << 8) | PROT_TCP);
@@ -897,7 +897,7 @@ void PrepareTCP_FRAME(unsigned short TCPCode)
   memcpy(&TxFrame2[IP_SOURCE_OFS], &MyIP, 4);
   memcpy(&TxFrame2[IP_DESTINATION_OFS], &RemoteIP, 4);
   *(unsigned short *)&TxFrame2[IP_HEAD_CHKSUM_OFS] = CalcChecksum(&TxFrame2[IP_VER_IHL_TOS_OFS], IP_HEADER_SIZE, 0);
-  
+
   // TCP
   WriteWBE(&TxFrame2[TCP_SRCPORT_OFS], TCPLocalPort);
   WriteWBE(&TxFrame2[TCP_DESTPORT_OFS], TCPRemotePort);
@@ -905,7 +905,7 @@ void PrepareTCP_FRAME(unsigned short TCPCode)
   WriteDWBE(&TxFrame2[TCP_SEQNR_OFS], TCPSeqNr);
   WriteDWBE(&TxFrame2[TCP_ACKNR_OFS], TCPAckNr);
 
-// CodeRed - int-> short   
+// CodeRed - int-> short
 /*    *(unsigned int *)&TxFrame2[TCP_WINDOW_OFS] = SWAPB(MAX_TCP_RX_DATA_SIZE);    // data bytes to accept
   *(unsigned int *)&TxFrame2[TCP_CHKSUM_OFS] = 0;             // initalize checksum
   *(unsigned int *)&TxFrame2[TCP_URGENT_OFS] = 0;
@@ -942,7 +942,7 @@ void PrepareTCP_FRAME(unsigned short TCPCode)
     *(unsigned short *)&TxFrame2[TCP_DATA_CODE_OFS] = SWAPB(0x5000 | TCPCode);   // TCP header length = 20
     *(unsigned short *)&TxFrame2[TCP_CHKSUM_OFS] = CalcChecksum(&TxFrame2[TCP_SRCPORT_OFS], TCP_HEADER_SIZE, 1);
     TxFrame2Size = ETH_HEADER_SIZE + IP_HEADER_SIZE + TCP_HEADER_SIZE;
-  }  
+  }
   TransmitControl |= SEND_FRAME2;
 }
 
@@ -954,19 +954,19 @@ void PrepareTCP_DATA_FRAME(void)
   // Ethernet
   memcpy(&TxFrame1[ETH_DA_OFS], &RemoteMAC, 6);
   memcpy(&TxFrame1[ETH_SA_OFS], &MyMAC, 6);
-// Code Red - int-> short    
+// Code Red - int-> short
 //  *(unsigned int *)&TxFrame1[ETH_TYPE_OFS] = SWAPB(FRAME_IP);
   *(unsigned short *)&TxFrame1[ETH_TYPE_OFS] = SWAPB(FRAME_IP);
-  
+
   // IP
-  
-// CodeRed - int-> short   
+
+// CodeRed - int-> short
 /*  *(unsigned int *)&TxFrame1[IP_VER_IHL_TOS_OFS] = SWAPB(IP_VER_IHL | IP_TOS_D);
   WriteWBE(&TxFrame1[IP_TOTAL_LENGTH_OFS], IP_HEADER_SIZE + TCP_HEADER_SIZE + TCPTxDataCount);
   *(unsigned int *)&TxFrame1[IP_IDENT_OFS] = 0;
   *(unsigned int *)&TxFrame1[IP_FLAGS_FRAG_OFS] = 0;
   *(unsigned int *)&TxFrame1[IP_TTL_PROT_OFS] = SWAPB((DEFAULT_TTL << 8) | PROT_TCP);
-  *(unsigned int *)&TxFrame1[IP_HEAD_CHKSUM_OFS] = 0; 
+  *(unsigned int *)&TxFrame1[IP_HEAD_CHKSUM_OFS] = 0;
   memcpy(&TxFrame1[IP_SOURCE_OFS], &MyIP, 4);
   memcpy(&TxFrame1[IP_DESTINATION_OFS], &RemoteIP, 4);
   *(unsigned int *)&TxFrame1[IP_HEAD_CHKSUM_OFS] = CalcChecksum(&TxFrame1[IP_VER_IHL_TOS_OFS], IP_HEADER_SIZE, 0);
@@ -976,28 +976,28 @@ void PrepareTCP_DATA_FRAME(void)
   *(unsigned short *)&TxFrame1[IP_IDENT_OFS] = 0;
   *(unsigned short *)&TxFrame1[IP_FLAGS_FRAG_OFS] = 0;
   *(unsigned short *)&TxFrame1[IP_TTL_PROT_OFS] = SWAPB((DEFAULT_TTL << 8) | PROT_TCP);
-  *(unsigned short *)&TxFrame1[IP_HEAD_CHKSUM_OFS] = 0; 
+  *(unsigned short *)&TxFrame1[IP_HEAD_CHKSUM_OFS] = 0;
   memcpy(&TxFrame1[IP_SOURCE_OFS], &MyIP, 4);
   memcpy(&TxFrame1[IP_DESTINATION_OFS], &RemoteIP, 4);
   *(unsigned short *)&TxFrame1[IP_HEAD_CHKSUM_OFS] = CalcChecksum(&TxFrame1[IP_VER_IHL_TOS_OFS], IP_HEADER_SIZE, 0);
-  
-  
+
+
   // TCP
   WriteWBE(&TxFrame1[TCP_SRCPORT_OFS], TCPLocalPort);
   WriteWBE(&TxFrame1[TCP_DESTPORT_OFS], TCPRemotePort);
 
   WriteDWBE(&TxFrame1[TCP_SEQNR_OFS], TCPSeqNr);
   WriteDWBE(&TxFrame1[TCP_ACKNR_OFS], TCPAckNr);
-// CodeRed - int-> short  
+// CodeRed - int-> short
 /*  *(unsigned int *)&TxFrame1[TCP_DATA_CODE_OFS] = SWAPB(0x5000 | TCP_CODE_ACK);   // TCP header length = 20
   *(unsigned int *)&TxFrame1[TCP_WINDOW_OFS] = SWAPB(MAX_TCP_RX_DATA_SIZE);       // data bytes to accept
-  *(unsigned int *)&TxFrame1[TCP_CHKSUM_OFS] = 0; 
+  *(unsigned int *)&TxFrame1[TCP_CHKSUM_OFS] = 0;
   *(unsigned int *)&TxFrame1[TCP_URGENT_OFS] = 0;
   *(unsigned int *)&TxFrame1[TCP_CHKSUM_OFS] = CalcChecksum(&TxFrame1[TCP_SRCPORT_OFS], TCP_HEADER_SIZE + TCPTxDataCount, 1);
 */
   *(unsigned short *)&TxFrame1[TCP_DATA_CODE_OFS] = SWAPB(0x5000 | TCP_CODE_ACK);   // TCP header length = 20
   *(unsigned short *)&TxFrame1[TCP_WINDOW_OFS] = SWAPB(MAX_TCP_RX_DATA_SIZE);       // data bytes to accept
-  *(unsigned short *)&TxFrame1[TCP_CHKSUM_OFS] = 0; 
+  *(unsigned short *)&TxFrame1[TCP_CHKSUM_OFS] = 0;
   *(unsigned short *)&TxFrame1[TCP_URGENT_OFS] = 0;
   *(unsigned short *)&TxFrame1[TCP_CHKSUM_OFS] = CalcChecksum(&TxFrame1[TCP_SRCPORT_OFS], TCP_HEADER_SIZE + TCPTxDataCount, 1);
 
@@ -1007,7 +1007,7 @@ void PrepareTCP_DATA_FRAME(void)
 // calculates the TCP/IP checksum. if 'IsTCP != 0', the TCP pseudo-header
 // will be included.
 
-// CodeRed - int-> short  
+// CodeRed - int-> short
 //unsigned int CalcChecksum(void *Start, unsigned int Count, unsigned char IsTCP)
 unsigned short CalcChecksum(void *Start, unsigned short Count, unsigned char IsTCP)
 {
@@ -1024,7 +1024,7 @@ unsigned short CalcChecksum(void *Start, unsigned short Count, unsigned char IsT
     Sum += SWAPB(PROT_TCP);
   }
 
-// Code Red - modified to correct expression  
+// Code Red - modified to correct expression
 /*  while (Count > 1) {                            // sum words
     Sum += *((unsigned int *)Start)++;
     Count -= 2;
@@ -1033,7 +1033,7 @@ unsigned short CalcChecksum(void *Start, unsigned short Count, unsigned char IsT
   if (Count)                                     // add left-over byte, if any
     Sum += *(unsigned char *)Start;
 */
-  
+
   pStart = Start;
   while (Count > 1) {                            // sum words
     Sum += *pStart++;
@@ -1043,10 +1043,10 @@ unsigned short CalcChecksum(void *Start, unsigned short Count, unsigned char IsT
   if (Count)                                     // add left-over byte, if any
     Sum += *(unsigned char *)pStart;
 
-  
+
   while (Sum >> 16)                              // fold 32-bit sum to 16 bits
     Sum = (Sum & 0xFFFF) + (Sum >> 16);
-  
+
   return ~Sum;
 }
 
@@ -1068,7 +1068,7 @@ void TCPStartTimeWaitTimer(void)
 {
   TCPTimer = 0;
   TCPFlags |= TCP_TIMER_RUNNING;
-  TCPFlags &= ~TIMER_TYPE_RETRY;  
+  TCPFlags &= ~TIMER_TYPE_RETRY;
 }
 
 // easyWEB internal function
@@ -1161,7 +1161,7 @@ void SendFrame1(void)
 
 void SendFrame2(void)
 {
-// CodeRed - updated for LPC1768 port	
+// CodeRed - updated for LPC1768 port
 // CopyToFrame8900(&TxFrame2, TxFrame2Size);
   CopyToFrame_EthMAC(TxFrame2, TxFrame2Size);
 }

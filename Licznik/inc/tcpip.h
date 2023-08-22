@@ -44,7 +44,7 @@
 #define MAX_TCP_RX_DATA_SIZE 256                 // max. incoming TCP data size (even!)
                                                  // (increasing the buffer-size dramatically
                                                  // increases the transfer-speed!)
-                                        
+
 #define MAX_ETH_TX_DATA_SIZE 60                  // 2nd buffer, used for ARP, ICMP, TCP (even!)
                                                  // enough to echo 32 byte via ICMP
 
@@ -194,7 +194,7 @@ const unsigned short GatewayIP[] =               // "GWIP1.GWIP2.GWIP3.GWIP4"
   GWIP_1 + (GWIP_2 << 8),
   GWIP_3 + (GWIP_4 << 8)
 };
-#else 
+#else
  const unsigned short MyIP[2];             // "MYIP1.MYIP2.MYIP3.MYIP4"
  const unsigned short SubnetMask[2];       // "SUBMASK1.SUBMASK2.SUBMASK3.SUBMASK4"
  const unsigned short GatewayIP[2];        // "GWIP1.GWIP2.GWIP3.GWIP4"
@@ -283,7 +283,7 @@ void TCPClose(void);                             // close connection
 void TCPReleaseRxBuffer(void);                   // indicate to discard rec'd packet
 void TCPTransmitTxBuffer(void);                  // initiate transfer after TxBuffer is filled
 // Code Red - added declaration for Timer0 ISR
-void TCPClockHandler(void);                      
+void TCPClockHandler(void);
 
 // easyWEB-API global vars and flags
  unsigned short TCPRxDataCount;            // nr. of bytes rec'd

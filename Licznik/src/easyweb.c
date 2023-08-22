@@ -167,7 +167,7 @@ void HTTPServer(void)
           HTTPBytesToSend -= MAX_TCP_TX_DATA_SIZE;
           PWebSide += MAX_TCP_TX_DATA_SIZE;
         }
-          
+
         TCPTxDataCount = MAX_TCP_TX_DATA_SIZE;   // bytes to xfer
         InsertDynamicValues();                   // exchange some strings...
         TCPTransmitTxBuffer();                   // xfer buffer
@@ -194,7 +194,7 @@ void HTTPServer(void)
 
 // Code Red - GetAD7Val function replaced
 // Rather than using the AD convertor, in this version we simply increment
-// a counter the function is called, wrapping at 1024. 
+// a counter the function is called, wrapping at 1024.
 volatile unsigned int aaScrollbar = 400;
 
 unsigned int GetAD7Val(void)
@@ -216,12 +216,12 @@ unsigned int GetAD7Val(void)
   ADC12CTL1 = ADC12SSEL_2 | ADC12DIV_7 | CSTARTADD_0 | SHP;// MCLK / 8 = 1 MHz
 
   ADC12MCTL0 = SREF_1 | INCH_7;                  // int. ref., channel 7
-  
+
   ADC12CTL0 |= ENC;                              // enable conversion
   ADC12CTL0 |= ADC12SC;                          // sample & convert
-  
+
   while (ADC12CTL0 & ADC12SC);                   // wait until conversion is complete
-  
+
   ADC12CTL0 &= ~ENC;                             // disable conversion
 
   return ADC12MEM0 / 41;                         // scale 12 bit value to 0..100%
@@ -254,12 +254,12 @@ unsigned int GetTempVal(void)
   ADC12MCTL5 = SREF_1 | INCH_10;                 // int. ref., channel 10
   ADC12MCTL6 = SREF_1 | INCH_10;                 // int. ref., channel 10
   ADC12MCTL7 = EOS | SREF_1 | INCH_10;           // int. ref., channel 10, last seg.
-  
+
   ADC12CTL0 |= ENC;                              // enable conversion
   ADC12CTL0 |= ADC12SC;                          // sample & convert
-  
+
   while (ADC12CTL0 & ADC12SC);                   // wait until conversion is complete
-  
+
   ADC12CTL0 &= ~ENC;                             // disable conversion
 
   ReturnValue = ADC12MEM0;                       // sum up values...
@@ -294,11 +294,11 @@ void InsertDynamicValues(void)
   unsigned char *Key;
            char NewKey[6];
   unsigned int i;
-  
+
   if (TCPTxDataCount < 4) return;                     // there can't be any special string
-  
+
   Key = TCP_TX_BUF;
-  
+
   for (i = 0; i < (TCPTxDataCount - 3); i++)
   {
     if (*Key == 'A')
@@ -309,20 +309,20 @@ void InsertDynamicValues(void)
            case '8' :                                 // "AD8%"?
            {
              sprintf(NewKey, "%04d", GetAD7Val());     // insert pseudo-ADconverter value
-             memcpy(Key, NewKey, 4);                  
+             memcpy(Key, NewKey, 4);
              break;
            }
            case '7' :                                 // "AD7%"?
            {
              sprintf(NewKey, "%3u", adcValue);     // copy saved value from previous read
-             memcpy(Key, NewKey, 3);                 
+             memcpy(Key, NewKey, 3);
              break;
            }
 		   case '1' :                                 // "AD1%"?
            {
  			 sprintf(NewKey, "%4u", ++aaPagecounter);    // increment and insert page counter
-             memcpy(Key, NewKey, 4);  
-//			 *(Key + 3) = ' ';  
+             memcpy(Key, NewKey, 4);
+//			 *(Key + 3) = ' ';
              break;
            }
          }
@@ -338,11 +338,11 @@ void InsertDynamicValues(void)
   unsigned char *Key;
   unsigned char NewKey[5];
   unsigned int i;
-  
+
   if (TCPTxDataCount < 4) return;                     // there can't be any special string
-  
+
   Key = TCP_TX_BUF;
-  
+
   for (i = 0; i < (TCPTxDataCount - 3); i++)
   {
     if (*Key == 'A')
@@ -383,26 +383,26 @@ void InitOsc(void)
 
   BCSCTL1 |= XTS;                                // XT1 as high-frequency
   _BIC_SR(OSCOFF);                               // turn on XT1 oscillator
-                          
-  do                                             // wait in loop until crystal is stable 
+
+  do                                             // wait in loop until crystal is stable
     IFG1 &= ~OFIFG;
   while (IFG1 & OFIFG);
 
   BCSCTL1 |= DIVA0;                              // ACLK = XT1 / 2
   BCSCTL1 &= ~DIVA1;
-  
+
   IE1 &= ~WDTIE;                                 // disable WDT int.
   IFG1 &= ~WDTIFG;                               // clear WDT int. flag
-  
+
   WDTCTL = WDTPW | WDTTMSEL | WDTCNTCL | WDTSSEL | WDTIS1; // use WDT as timer, flag each
                                                            // 512 pulses from ACLK
-                                                           
+
   while (!(IFG1 & WDTIFG));                      // count 1024 pulses from XT1 (until XT1's
                                                  // amplitude is OK)
 
   IFG1 &= ~OFIFG;                                // clear osc. fault int. flag
   BCSCTL2 = SELM0 | SELM1;                       // set XT1 as MCLK
-}  
+}
 
 void InitPorts(void)
 {

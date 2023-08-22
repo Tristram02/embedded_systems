@@ -629,7 +629,7 @@ void RequestSend(unsigned short FrameSize);
 unsigned int Rdy4Tx(void);
 unsigned short StartReadingFrame(void);
 void StopReadingFrame(void);
-unsigned int CheckIfFrameReceived(void); 
+unsigned int CheckIfFrameReceived(void);
 
 #endif
 
