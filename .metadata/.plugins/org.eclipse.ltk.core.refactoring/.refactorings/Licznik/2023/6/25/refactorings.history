@@ -1,4 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<session version="1.0">
-<refactoring comment="Rename resource &apos;Licznik/oled_periph LinkServer Debug.launch&apos; to &apos;Licznik LinkServer Debug.launch&apos;" description="Rename resource &apos;oled_periph LinkServer Debug.launch&apos;" flags="7" id="org.eclipse.ltk.core.refactoring.rename.resource" input="oled_periph LinkServer Debug.launch" name="Licznik LinkServer Debug.launch" stamp="1687357378008" updateReferences="true"/>
-</session>
