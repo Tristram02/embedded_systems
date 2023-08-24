@@ -38,6 +38,7 @@
 //#include "webside.h"                             // webside for our HTTP server (HTML)
 
 
+int easyweb (void);
 void start(void);
 void InitOsc(void);                              // prototypes
 void InitPorts(void);

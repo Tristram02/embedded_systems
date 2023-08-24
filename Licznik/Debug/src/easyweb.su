@@ -1,3 +1,5 @@
-easyweb.c:140:6:HTTPServer	8	static
-easyweb.c:200:14:GetAD7Val	4	static
-easyweb.c:292:6:InsertDynamicValues	24	static
+easyweb.c:68:13:init_ssp	40	static
+easyweb.c:106:5:easyweb	8	static
+easyweb.c:115:6:HTTPServer	8	static
+easyweb.c:175:14:GetAD7Val	4	static
+easyweb.c:267:6:InsertDynamicValues	24	static

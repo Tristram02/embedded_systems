@@ -23,7 +23,6 @@
 #define MYIP_3               10
 #define MYIP_4               234
 
-
 #define SUBMASK_1            255                 // subnet mask
 #define SUBMASK_2            255
 #define SUBMASK_3            255

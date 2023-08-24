@@ -20,22 +20,39 @@
 // CodeRed - removed header for MSP430 microcontroller
 //#include "msp430x14x.h"
 
-//#include "stdlib.h"
-//#include "stdio.h"
-//#include "string.h"
+#include "stdlib.h"
+#include "stdio.h"
+#include "string.h"
+
+// CodeRed - added #define extern on next line (else variables
+// not defined). This has been done due to include the .h files 
+// rather than the .c files as in the original version of easyweb.
+#define extern 
 
 #include "easyweb.h"
-#include "tcpip.h"
-#include "webside.h"
 
-//#include "lpc17xx_pinsel.h"
-//#include "lpc17xx_gpio.h"
-//#include "lpc17xx_ssp.h"
-//#include "oled.h"
+// CodeRed - removed header for original ethernet controller
+//#include "cs8900.c"                              // ethernet packet driver
 
-// CodeRed - added for use in dynamic side of web page
-unsigned int aaPagecounter=0;
-unsigned int adcValue = 0;
+//CodeRed - added for LPC ethernet controller
+#include "ethmac.h"
+
+// CodeRed - include .h rather than .c file
+// #include "tcpip.c"                               // easyWEB TCP/IP stack
+#include "tcpip.h"                               // easyWEB TCP/IP stack
+
+// CodeRed - added NXP LPC register definitions header
+#include "LPC17xx.h"
+
+
+// CodeRed - include renamed .h rather than .c file
+// #include "webside.c"                             // webside for our HTTP server (HTML)
+#include "webside.h"                             // webside for our HTTP server (HTML)
+
+#include "lpc17xx_pinsel.h"
+#include "lpc17xx_gpio.h"
+#include "lpc17xx_ssp.h"
+#include "oled.h"
 
 const unsigned char GetResponse[] =              // 1st thing our server sends to a client
 {
@@ -43,99 +60,57 @@ const unsigned char GetResponse[] =              // 1st thing our server sends t
   "Content-Type: text/html\r\n"                  // type of data we want to send
   "\r\n"                                         // indicate end of HTTP-header
 };
-//
-//static void init_ssp(void)
-//{
-//	SSP_CFG_Type SSP_ConfigStruct;
-//	PINSEL_CFG_Type PinCfg;
-//
-//	/*
-//	 * Initialize SPI pin connect
-//	 * P0.7 - SCK;
-//	 * P0.8 - MISO
-//	 * P0.9 - MOSI
-//	 * P2.2 - SSEL - used as GPIO
-//	 */
-//	PinCfg.Funcnum = 2;
-//	PinCfg.OpenDrain = 0;
-//	PinCfg.Pinmode = 0;
-//	PinCfg.Portnum = 0;
-//	PinCfg.Pinnum = 7;
-//	PINSEL_ConfigPin(&PinCfg);
-//	PinCfg.Pinnum = 8;
-//	PINSEL_ConfigPin(&PinCfg);
-//	PinCfg.Pinnum = 9;
-//	PINSEL_ConfigPin(&PinCfg);
-//	PinCfg.Funcnum = 0;
-//	PinCfg.Portnum = 2;
-//	PinCfg.Pinnum = 2;
-//	PINSEL_ConfigPin(&PinCfg);
-//
-//	SSP_ConfigStructInit(&SSP_ConfigStruct);
-//
-//	// Initialize SSP peripheral with parameter given in structure above
-//	SSP_Init(LPC_SSP1, &SSP_ConfigStruct);
-//
-//	// Enable SSP peripheral
-//	SSP_Cmd(LPC_SSP1, ENABLE);
-//
-//}
-//
-//int main (void)
-//{
-//	uint8_t buf[50];
-//
-//    init_ssp();
-//
-//    oled_init();
-//    oled_clearScreen(OLED_COLOR_WHITE);
-//
-//    oled_putString(1,1,  (uint8_t*)"EasyWeb Demo", OLED_COLOR_BLACK, OLED_COLOR_WHITE);
-//    oled_putString(1,17, (uint8_t*)"IP Address:", OLED_COLOR_BLACK, OLED_COLOR_WHITE);
-//
-//    sprintf((char*)buf, " %d.%d.%d.%d", MYIP_1, MYIP_2, MYIP_3, MYIP_4);
-//    oled_putString(1,25, (uint8_t*)buf, OLED_COLOR_BLACK, OLED_COLOR_WHITE);
-//
-//	TCPLowLevelInit();
-//
-///*
-//  *(unsigned char *)RemoteIP = 24;               // uncomment those lines to get the
-//  *((unsigned char *)RemoteIP + 1) = 8;          // quote of the day from a real
-//  *((unsigned char *)RemoteIP + 2) = 69;         // internet server! (gateway must be
-//  *((unsigned char *)RemoteIP + 3) = 7;          // set to your LAN-router)
-//
-//  TCPLocalPort = 2025;
-//  TCPRemotePort = TCP_PORT_QOTD;
-//
-//  TCPActiveOpen();
-//
-//  while (SocketStatus & SOCK_ACTIVE)             // read the quote from memory
-//  {                                              // by using the hardware-debugger
-//    DoNetworkStuff();
-//  }
-//*/
-//
-//  HTTPStatus = 0;                                // clear HTTP-server's flag register
-//
-//  TCPLocalPort = TCP_PORT_HTTP;                  // set port we want to listen to
-//
-//
-//  while (1)                                      // repeat forever
-//  {
-//    if (!(SocketStatus & SOCK_ACTIVE)) TCPPassiveOpen();   // listen for incoming TCP-connection
-//    DoNetworkStuff();                                      // handle network and easyWEB-stack
-//                                                           // events
-//    HTTPServer();
-//  }
-//}
 
-// This function implements a very simple dynamic HTTP-server.
-// It waits until connected, then sends a HTTP-header and the
-// HTML-code stored in memory. Before sending, it replaces
-// some special strings with dynamic values.
-// NOTE: For strings crossing page boundaries, replacing will
-// not work. In this case, simply add some extra lines
-// (e.g. CR and LFs) to the HTML-code.
+// CodeRed - added for use in dynamic side of web page
+unsigned int aaPagecounter=0;
+unsigned int adcValue = 0;
+
+static void init_ssp(void)
+{
+	SSP_CFG_Type SSP_ConfigStruct;
+	PINSEL_CFG_Type PinCfg;
+
+	/*
+	 * Initialize SPI pin connect
+	 * P0.7 - SCK;
+	 * P0.8 - MISO
+	 * P0.9 - MOSI
+	 * P2.2 - SSEL - used as GPIO
+	 */
+	PinCfg.Funcnum = 2;
+	PinCfg.OpenDrain = 0;
+	PinCfg.Pinmode = 0;
+	PinCfg.Portnum = 0;
+	PinCfg.Pinnum = 7;
+	PINSEL_ConfigPin(&PinCfg);
+	PinCfg.Pinnum = 8;
+	PINSEL_ConfigPin(&PinCfg);
+	PinCfg.Pinnum = 9;
+	PINSEL_ConfigPin(&PinCfg);
+	PinCfg.Funcnum = 0;
+	PinCfg.Portnum = 2;
+	PinCfg.Pinnum = 2;
+	PINSEL_ConfigPin(&PinCfg);
+
+	SSP_ConfigStructInit(&SSP_ConfigStruct);
+
+	// Initialize SSP peripheral with parameter given in structure above
+	SSP_Init(LPC_SSP1, &SSP_ConfigStruct);
+
+	// Enable SSP peripheral
+	SSP_Cmd(LPC_SSP1, ENABLE);
+
+}
+
+
+int easyweb (void)
+{
+    if (!(SocketStatus & SOCK_ACTIVE)) TCPPassiveOpen();   // listen for incoming TCP-connection
+    DoNetworkStuff();                                      // handle network and easyWEB-stack
+                                                           // events
+    HTTPServer();
+}
+
 
 void HTTPServer(void)
 {
@@ -167,7 +142,7 @@ void HTTPServer(void)
           HTTPBytesToSend -= MAX_TCP_TX_DATA_SIZE;
           PWebSide += MAX_TCP_TX_DATA_SIZE;
         }
-
+          
         TCPTxDataCount = MAX_TCP_TX_DATA_SIZE;   // bytes to xfer
         InsertDynamicValues();                   // exchange some strings...
         TCPTransmitTxBuffer();                   // xfer buffer
@@ -194,7 +169,7 @@ void HTTPServer(void)
 
 // Code Red - GetAD7Val function replaced
 // Rather than using the AD convertor, in this version we simply increment
-// a counter the function is called, wrapping at 1024.
+// a counter the function is called, wrapping at 1024. 
 volatile unsigned int aaScrollbar = 400;
 
 unsigned int GetAD7Val(void)
@@ -216,12 +191,12 @@ unsigned int GetAD7Val(void)
   ADC12CTL1 = ADC12SSEL_2 | ADC12DIV_7 | CSTARTADD_0 | SHP;// MCLK / 8 = 1 MHz
 
   ADC12MCTL0 = SREF_1 | INCH_7;                  // int. ref., channel 7
-
+  
   ADC12CTL0 |= ENC;                              // enable conversion
   ADC12CTL0 |= ADC12SC;                          // sample & convert
-
+  
   while (ADC12CTL0 & ADC12SC);                   // wait until conversion is complete
-
+  
   ADC12CTL0 &= ~ENC;                             // disable conversion
 
   return ADC12MEM0 / 41;                         // scale 12 bit value to 0..100%
@@ -254,12 +229,12 @@ unsigned int GetTempVal(void)
   ADC12MCTL5 = SREF_1 | INCH_10;                 // int. ref., channel 10
   ADC12MCTL6 = SREF_1 | INCH_10;                 // int. ref., channel 10
   ADC12MCTL7 = EOS | SREF_1 | INCH_10;           // int. ref., channel 10, last seg.
-
+  
   ADC12CTL0 |= ENC;                              // enable conversion
   ADC12CTL0 |= ADC12SC;                          // sample & convert
-
+  
   while (ADC12CTL0 & ADC12SC);                   // wait until conversion is complete
-
+  
   ADC12CTL0 &= ~ENC;                             // disable conversion
 
   ReturnValue = ADC12MEM0;                       // sum up values...
@@ -294,11 +269,11 @@ void InsertDynamicValues(void)
   unsigned char *Key;
            char NewKey[6];
   unsigned int i;
-
+  
   if (TCPTxDataCount < 4) return;                     // there can't be any special string
-
+  
   Key = TCP_TX_BUF;
-
+  
   for (i = 0; i < (TCPTxDataCount - 3); i++)
   {
     if (*Key == 'A')
@@ -309,20 +284,20 @@ void InsertDynamicValues(void)
            case '8' :                                 // "AD8%"?
            {
              sprintf(NewKey, "%04d", GetAD7Val());     // insert pseudo-ADconverter value
-             memcpy(Key, NewKey, 4);
+             memcpy(Key, NewKey, 4);                  
              break;
            }
            case '7' :                                 // "AD7%"?
            {
              sprintf(NewKey, "%3u", adcValue);     // copy saved value from previous read
-             memcpy(Key, NewKey, 3);
+             memcpy(Key, NewKey, 3);                 
              break;
            }
 		   case '1' :                                 // "AD1%"?
            {
  			 sprintf(NewKey, "%4u", ++aaPagecounter);    // increment and insert page counter
-             memcpy(Key, NewKey, 4);
-//			 *(Key + 3) = ' ';
+             memcpy(Key, NewKey, 4);  
+//			 *(Key + 3) = ' ';  
              break;
            }
          }
@@ -338,11 +313,11 @@ void InsertDynamicValues(void)
   unsigned char *Key;
   unsigned char NewKey[5];
   unsigned int i;
-
+  
   if (TCPTxDataCount < 4) return;                     // there can't be any special string
-
+  
   Key = TCP_TX_BUF;
-
+  
   for (i = 0; i < (TCPTxDataCount - 3); i++)
   {
     if (*Key == 'A')
@@ -383,26 +358,26 @@ void InitOsc(void)
 
   BCSCTL1 |= XTS;                                // XT1 as high-frequency
   _BIC_SR(OSCOFF);                               // turn on XT1 oscillator
-
-  do                                             // wait in loop until crystal is stable
+                          
+  do                                             // wait in loop until crystal is stable 
     IFG1 &= ~OFIFG;
   while (IFG1 & OFIFG);
 
   BCSCTL1 |= DIVA0;                              // ACLK = XT1 / 2
   BCSCTL1 &= ~DIVA1;
-
+  
   IE1 &= ~WDTIE;                                 // disable WDT int.
   IFG1 &= ~WDTIFG;                               // clear WDT int. flag
-
+  
   WDTCTL = WDTPW | WDTTMSEL | WDTCNTCL | WDTSSEL | WDTIS1; // use WDT as timer, flag each
                                                            // 512 pulses from ACLK
-
+                                                           
   while (!(IFG1 & WDTIFG));                      // count 1024 pulses from XT1 (until XT1's
                                                  // amplitude is OK)
 
   IFG1 &= ~OFIFG;                                // clear osc. fault int. flag
   BCSCTL2 = SELM0 | SELM1;                       // set XT1 as MCLK
-}
+}  
 
 void InitPorts(void)
 {

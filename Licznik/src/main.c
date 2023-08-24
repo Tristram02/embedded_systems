@@ -74,6 +74,9 @@ static uint8_t tBuf[20]; //	Bufor do przechowywania temperatury
 static uint8_t buf[100]; //	Bufor do przechowania czasu wejscia
 static uint8_t pBuf[EEPROMLen]; //	Bufor do przechowania liczby ludzi
 
+volatile uint32_t TimeTick = 0;
+volatile uint32_t TimeTick2 = 0;
+
 LPC_RTC_TypeDef *RTCx = (LPC_RTC_TypeDef *) LPC_RTC_BASE;
 
 
@@ -778,6 +781,20 @@ int arrayToInt(uint8_t arr[])
 void SysTick_Handler(void)
 {
     msTicks++;
+
+	TimeTick++;		// Increment first SysTick counter
+	TimeTick2++;	// Increment second SysTick counter
+
+	// After 100 ticks (100 x 10ms = 1sec)
+	if (TimeTick >= 100) {
+	  TimeTick = 0;	// Reset counter
+	  LPC_GPIO1->FIOPIN ^= 1 << 25;	// Toggle user LED
+	}
+	// After 20 ticks (20 x 10ms = 1/5sec)
+	if (TimeTick2 >= 20) {
+	  TimeTick2 = 0; // Reset counter
+	  TCPClockHandler();  // Call TCP handler
+	}
 }
 
 /*!
@@ -846,6 +863,7 @@ int main(void)
 	//         VARIABLES          //
 	//############################//
 
+
 	uint8_t sw3 = 0;
 	uint8_t sw3_pressed = 0;
 
@@ -884,10 +902,6 @@ int main(void)
 	int8_t x = 0;
 	int8_t y = 0;
 	int8_t z = 0;
-
-	HTTPStatus = 0;                                // clear HTTP-server's flag register
-	TCPLocalPort = TCP_PORT_HTTP;                  // set port we want to listen to
-
 
 
 	//############################//
@@ -930,7 +944,7 @@ int main(void)
 	oled_putString(1, 40, "terminalu", OLED_COLOR_BLACK, OLED_COLOR_WHITE);
 	oled_putString(1, 50, "SW3 by pominac", OLED_COLOR_BLACK, OLED_COLOR_WHITE);
 
-	SDFlag = init_mmc();
+//	SDFlag = init_mmc();
 
 
 	//############################//
@@ -1040,12 +1054,12 @@ int main(void)
 	//############################//
 	//         MAIN LOOP          //
 	//############################//
-	while (1) {
+	TCPLowLevelInit();
+	HTTPStatus = 0;                                // clear HTTP-server's flag register
+	TCPLocalPort = TCP_PORT_HTTP;                  // set port we want to listen to
 
-		if (!(SocketStatus & SOCK_ACTIVE)) TCPPassiveOpen();   // listen for incoming TCP-connection
-		DoNetworkStuff();                                      // handle network and easyWEB-stack
-															   // events
-		HTTPServer();
+	while (1) {
+		easyweb();
 
 		//############################//
 		//            DATA            //
@@ -1068,7 +1082,18 @@ int main(void)
 			y = y+yoff;
 			z = z+zoff;
 
-
+			if (abs(x) > 10)
+			{
+				writeUARTMsg("Czujniki poruszaja sie szybko w osi OX\n\r");
+			}
+			if (abs(y) > 10)
+			{
+				writeUARTMsg("Czujniki poruszaja sie szybko w osi OY\n\r");
+			}
+			if (z < 0)
+			{
+				writeUARTMsg("Czujniki pokonaly sile grawitacji\n\r");
+			}
 
 			LPC_PINCON->PINSEL0 &= ~(1<<4) & ~(1<<6);
 
